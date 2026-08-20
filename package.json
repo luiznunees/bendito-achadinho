@@ -1,0 +1,12 @@
+{
+  "name": "bendito-achadinho",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Site do Bendito Achadinho + bot de curadoria via WhatsApp (Evolution API) e Vercel Functions.",
+  "scripts": {
+    "seed": "node scripts/seed.js"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^1.1.0"
+  }
+}

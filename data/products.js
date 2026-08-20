@@ -1,7 +1,13 @@
 // ============================================================
-// ACHADINHOS — cada objeto abaixo é uma linha de produto.
-// Para adicionar um novo achadinho, copie um bloco { ... },
-// cole antes do "];" final e edite os campos.
+// ACHADINHOS DE FALLBACK — usados só como catálogo offline/inicial.
+// A fonte "de verdade" dos achadinhos agora é o banco de dados,
+// cadastrado via bot do WhatsApp (veja api/whatsapp-webhook.js).
+// Este arquivo serve pra: (1) semear o banco a primeira vez
+// (scripts/seed.js), e (2) o site nunca aparecer vazio caso a
+// API/banco estejam fora do ar (veja js/app.js).
+//
+// Para adicionar um achadinho manualmente aqui, copie um bloco
+// { ... }, cole antes do "];" final e edite os campos.
 //
 // Campos:
 //   title          -> nome do produto (curto e chamativo)
@@ -47,3 +53,8 @@ const PRODUCTS = [
     affiliateLink: "https://s.shopee.com.br/SEU_LINK_AQUI",
   },
 ];
+
+// Não-op no navegador — só existe pra scripts/seed.js reaproveitar esta lista.
+if (typeof module !== "undefined") {
+  module.exports = PRODUCTS;
+}

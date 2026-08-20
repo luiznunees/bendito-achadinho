@@ -53,10 +53,10 @@ function renderFooter() {
   document.getElementById("disclaimer").textContent = CONFIG.disclaimer;
 }
 
-function renderProducts() {
+function renderProducts(products) {
   const list = document.getElementById("products-list");
 
-  list.innerHTML = PRODUCTS.map((p) => {
+  list.innerHTML = products.map((p) => {
     const imageHtml = p.image && p.image.trim() !== ""
       ? `<img src="${p.image}" alt="${p.title}" loading="lazy" />`
       : p.emoji || "🛍️";
@@ -75,11 +75,29 @@ function renderProducts() {
   }).join("");
 }
 
+// Renderiza o catálogo de fallback (data/products.js) na hora, pra
+// página nunca aparecer vazia — depois tenta buscar os achadinhos de
+// verdade (cadastrados pelo bot do WhatsApp) e troca se der certo.
+async function loadProducts() {
+  renderProducts(PRODUCTS);
+
+  try {
+    const res = await fetch("/api/products");
+    if (!res.ok) return;
+    const products = await res.json();
+    if (Array.isArray(products) && products.length > 0) {
+      renderProducts(products);
+    }
+  } catch (err) {
+    console.warn("Não consegui buscar /api/products, mantendo catálogo local:", err);
+  }
+}
+
 function init() {
   renderSocialBar();
   renderCta();
   renderFooter();
-  renderProducts();
+  loadProducts();
 }
 
 init();
