@@ -171,6 +171,23 @@
 
   .search-wrap { margin-bottom: 12px; }
 
+  .tabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+  .tabs button {
+    flex: 1;
+    background: var(--sticker-pink);
+    color: var(--red-deep);
+    font-size: 12.5px;
+    padding: 9px 0;
+  }
+  .tabs button[aria-pressed="true"] {
+    background: var(--red);
+    color: #fff;
+  }
+
   .product {
     display: flex;
     align-items: flex-start;
@@ -283,6 +300,11 @@
 
       <div class="card">
         <h2>Publicados</h2>
+        <div class="tabs" role="tablist" aria-label="Filtrar por status">
+          <button type="button" class="status-tab" data-status="active" aria-pressed="true">Ativos</button>
+          <button type="button" class="status-tab" data-status="inactive" aria-pressed="false">Removidos</button>
+          <button type="button" class="status-tab" data-status="all" aria-pressed="false">Todos</button>
+        </div>
         <div class="search-wrap">
           <label class="field-label" for="search-input">Buscar por nome</label>
           <input type="search" id="search-input" placeholder="Digite pra filtrar a lista..." />
@@ -295,6 +317,7 @@
 <script>
   let authHeader = sessionStorage.getItem("adminAuth") || "";
   let allProducts = [];
+  let statusFilter = "active";
 
   function formatBRL(value) {
     return "R$ " + Number(value).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -396,13 +419,24 @@
 
   function applyFilterAndRender() {
     const query = document.getElementById("search-input").value.trim().toLowerCase();
+
+    const byStatus = allProducts.filter((p) => {
+      if (statusFilter === "active") return p.active;
+      if (statusFilter === "inactive") return !p.active;
+      return true;
+    });
     const filtered = query
-      ? allProducts.filter((p) => p.title.toLowerCase().includes(query))
-      : allProducts;
+      ? byStatus.filter((p) => p.title.toLowerCase().includes(query))
+      : byStatus;
 
     const list = document.getElementById("product-list");
     if (!filtered.length) {
-      list.innerHTML = `<p class="empty-state">${query ? "Nenhum achadinho bate com essa busca." : "Nenhum achadinho cadastrado ainda."}</p>`;
+      const emptyByStatus = {
+        active: "Nenhum achadinho ativo.",
+        inactive: "Nenhum achadinho removido.",
+        all: "Nenhum achadinho cadastrado ainda.",
+      };
+      list.innerHTML = `<p class="empty-state">${query ? "Nenhum achadinho bate com essa busca." : emptyByStatus[statusFilter]}</p>`;
       return;
     }
     list.innerHTML = filtered.map(renderProductRow).join("");
@@ -498,6 +532,14 @@
     if (e.key === "Enter") tryLogin();
   });
   document.getElementById("search-input").addEventListener("input", applyFilterAndRender);
+
+  document.querySelectorAll(".status-tab").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      statusFilter = btn.dataset.status;
+      document.querySelectorAll(".status-tab").forEach((b) => b.setAttribute("aria-pressed", String(b === btn)));
+      applyFilterAndRender();
+    });
+  });
 
   document.getElementById("curate-btn").addEventListener("click", async () => {
     const input = document.getElementById("url-input");
