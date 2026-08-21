@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<title>Carrossel — slide de produto</title>
+
+<!--
+  ============================================================
+  COMO USAR
+  1. Troque o texto dentro de .name e .price abaixo (procure "EDITE AQUI").
+  2. Troque a URL da foto em background-image do .photo (procure "SUA FOTO AQUI").
+     Pode ser um caminho local (ex: "produtos/puff.jpg") ou uma URL.
+  3. Abra este arquivo no navegador (fica com 1080x1350 fixos) e tire
+     um print da área do slide, ou use uma extensão de "screenshot de
+     elemento" pra exportar em PNG.
+  4. Pra criar o próximo produto, duplique este arquivo e repita.
+  ============================================================
+-->
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@800&display=swap" rel="stylesheet" />
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #444;
+  }
+
+  .slide {
+    width: 1080px;
+    height: 1350px;
+    position: relative;
+    overflow: hidden;
+    margin: 0 auto;
+    font-family: "Baloo 2", "Segoe UI", sans-serif;
+  }
+
+  .photo {
+    position: absolute;
+    inset: 0;
+    /* SUA FOTO AQUI — troque a url() abaixo pela foto do produto.
+       Se a foto não carregar, o gradiente serve de fundo neutro. */
+    background:
+      url("SUA-FOTO-AQUI.jpg") center / cover no-repeat,
+      linear-gradient(to bottom, #ece7e0, #dcd4c8);
+  }
+
+  .text-block {
+    position: absolute;
+    top: 130px;
+    left: 0;
+    right: 0;
+    text-align: center;
+  }
+
+  .name,
+  .price {
+    display: inline-block;
+    color: #000;
+    -webkit-text-stroke: 11px #fff;
+    paint-order: stroke fill;
+    line-height: 1.15;
+  }
+
+  .name {
+    font-size: 76px;
+    font-weight: 800;
+  }
+
+  .price {
+    display: block;
+    font-size: 92px;
+    font-weight: 800;
+    margin-top: 18px;
+    -webkit-text-stroke: 13px #fff;
+  }
+</style>
+</head>
+<body>
+
+  <div class="slide">
+    <div class="photo"></div>
+
+    <div class="text-block">
+      <div class="name">Puff gigante</div> <!-- EDITE AQUI: nome do produto -->
+      <div class="price">R$87,00💰</div>   <!-- EDITE AQUI: preço -->
+    </div>
+  </div>
+
+</body>
+</html>
