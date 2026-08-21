@@ -57,9 +57,10 @@ function renderProducts(products) {
   const list = document.getElementById("products-list");
 
   list.innerHTML = products.map((p) => {
+    const fallbackEmoji = p.emoji || "🛍️";
     const imageHtml = p.image && p.image.trim() !== ""
-      ? `<img src="${p.image}" alt="${p.title}" loading="lazy" />`
-      : p.emoji || "🛍️";
+      ? `<img src="${p.image}" alt="${p.title}" onerror="this.replaceWith(document.createTextNode('${fallbackEmoji}'))" />`
+      : fallbackEmoji;
 
     return `
       <a class="product-row" href="${p.affiliateLink}" target="_blank" rel="noopener sponsored">
