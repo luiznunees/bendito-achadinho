@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Painel — Bendito Achadinho</title>
+<meta name="robots" content="noindex, nofollow" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+<style>
+  :root {
+    --red: #e71942;
+    --pink: #fa88ab;
+    --sticker-pink: #f8d2e1;
+    --pale: #fff8fa;
+    --ink: #24171b;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--pale);
+    color: var(--ink);
+    font-family: "Poppins", "Segoe UI", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 28px 16px 80px;
+  }
+  h1 {
+    font-family: "Baloo 2", sans-serif;
+    font-weight: 800;
+    color: var(--red);
+    font-size: 22px;
+    margin: 0 0 20px;
+  }
+  .card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 18px;
+    box-shadow: 0 4px 14px rgba(21,21,21,0.06);
+    margin-bottom: 20px;
+  }
+  .card h2 {
+    font-family: "Baloo 2", sans-serif;
+    font-size: 16px;
+    color: var(--red);
+    margin: 0 0 12px;
+  }
+  input[type="text"], input[type="password"] {
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 2px solid var(--sticker-pink);
+    font-family: inherit;
+    font-size: 14px;
+    outline: none;
+  }
+  input[type="text"]:focus, input[type="password"]:focus {
+    border-color: var(--pink);
+  }
+  button {
+    font-family: "Baloo 2", sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    color: #fff;
+    background: var(--red);
+    border: none;
+    border-radius: 999px;
+    padding: 11px 22px;
+    cursor: pointer;
+  }
+  button:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+  button.secondary {
+    background: var(--sticker-pink);
+    color: var(--red);
+  }
+  .row {
+    display: flex;
+    gap: 10px;
+    margin-top: 12px;
+  }
+  .row input { flex: 1; }
+  .status {
+    margin-top: 12px;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  .status.error { color: var(--red); }
+  .status.ok { color: #1a7a3d; }
+
+  .product {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid #f1e9ee;
+  }
+  .product:last-child { border-bottom: none; }
+  .product img, .product .emoji {
+    width: 56px;
+    height: 56px;
+    border-radius: 10px;
+    object-fit: cover;
+    flex-shrink: 0;
+    background: var(--sticker-pink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+  }
+  .product .info { flex: 1; min-width: 0; }
+  .product .title {
+    font-weight: 600;
+    font-size: 13.5px;
+    line-height: 1.3;
+  }
+  .product .price {
+    color: var(--red);
+    font-weight: 700;
+    font-size: 13.5px;
+  }
+  .product .badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 600;
+    color: #999;
+    background: #f1f1f1;
+    border-radius: 6px;
+    padding: 2px 6px;
+    margin-left: 6px;
+  }
+  .product button {
+    font-size: 12px;
+    padding: 7px 14px;
+    flex-shrink: 0;
+  }
+
+  #login-card { max-width: 340px; margin: 80px auto 0; text-align: center; }
+  #app { display: none; }
+</style>
+</head>
+<body>
+
+  <div class="wrap">
+    <h1>✝️ Painel — Bendito Achadinho</h1>
+
+    <div id="login-card" class="card">
+      <h2>Entrar</h2>
+      <input type="password" id="password-input" placeholder="Senha do painel" />
+      <div class="row"><button id="login-btn" style="width:100%">Entrar</button></div>
+      <div id="login-status" class="status error"></div>
+    </div>
+
+    <div id="app">
+      <div class="card">
+        <h2>Cadastrar achadinho</h2>
+        <div class="row">
+          <input type="text" id="url-input" placeholder="Cole o link do produto na Shopee..." />
+          <button id="curate-btn">Cadastrar</button>
+        </div>
+        <div id="curate-status" class="status"></div>
+      </div>
+
+      <div class="card">
+        <h2>Publicados</h2>
+        <div id="product-list"></div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  let authHeader = sessionStorage.getItem("adminAuth") || "";
+
+  function formatBRL(value) {
+    return "R$ " + Number(value).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  async function api(path, options = {}) {
+    const res = await fetch(path, {
+      ...options,
+      headers: { ...(options.headers || {}), Authorization: authHeader },
+    });
+    if (res.status === 401) {
+      sessionStorage.removeItem("adminAuth");
+      showLogin("Senha incorreta ou sessão expirada.");
+      throw new Error("unauthorized");
+    }
+    return res;
+  }
+
+  function showLogin(message) {
+    document.getElementById("app").style.display = "none";
+    document.getElementById("login-card").style.display = "block";
+    document.getElementById("login-status").textContent = message || "";
+  }
+
+  function showApp() {
+    document.getElementById("login-card").style.display = "none";
+    document.getElementById("app").style.display = "block";
+    loadProducts();
+  }
+
+  async function tryLogin() {
+    const password = document.getElementById("password-input").value;
+    authHeader = "Basic " + btoa(":" + password);
+    const btn = document.getElementById("login-btn");
+    btn.disabled = true;
+    try {
+      const res = await fetch("/api/admin/products", { headers: { Authorization: authHeader } });
+      if (res.status === 401) {
+        document.getElementById("login-status").textContent = "Senha incorreta.";
+        return;
+      }
+      sessionStorage.setItem("adminAuth", authHeader);
+      showApp();
+    } catch (err) {
+      document.getElementById("login-status").textContent = "Erro de conexão: " + err.message;
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  async function loadProducts() {
+    const list = document.getElementById("product-list");
+    list.textContent = "Carregando...";
+    try {
+      const res = await api("/api/admin/products");
+      const products = await res.json();
+      if (!products.length) {
+        list.innerHTML = "<p style='color:#999;font-size:13px'>Nenhum achadinho cadastrado ainda.</p>";
+        return;
+      }
+      list.innerHTML = products.map((p) => {
+        const photo = p.image
+          ? `<img src="${p.image}" alt="" />`
+          : `<div class="emoji">${p.emoji || "🛍️"}</div>`;
+        const badge = p.active ? "" : `<span class="badge">removido</span>`;
+        const btnLabel = p.active ? "Remover" : "Restaurar";
+        return `
+          <div class="product">
+            ${photo}
+            <div class="info">
+              <div class="title">${p.title}${badge}</div>
+              <div class="price">${formatBRL(p.price)}</div>
+            </div>
+            <button class="secondary toggle-btn" data-id="${p.id}" data-active="${p.active}">${btnLabel}</button>
+          </div>
+        `;
+      }).join("");
+
+      list.querySelectorAll(".toggle-btn").forEach((btn) => {
+        btn.addEventListener("click", async () => {
+          const id = btn.dataset.id;
+          const nextActive = btn.dataset.active !== "true";
+          btn.disabled = true;
+          try {
+            await api(`/api/admin/products?id=${id}`, {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ active: nextActive }),
+            });
+            loadProducts();
+          } catch (err) {
+            btn.disabled = false;
+          }
+        });
+      });
+    } catch (err) {
+      if (err.message !== "unauthorized") {
+        list.innerHTML = "<p style='color:var(--red);font-size:13px'>Erro ao carregar: " + err.message + "</p>";
+      }
+    }
+  }
+
+  document.getElementById("login-btn").addEventListener("click", tryLogin);
+  document.getElementById("password-input").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") tryLogin();
+  });
+
+  document.getElementById("curate-btn").addEventListener("click", async () => {
+    const input = document.getElementById("url-input");
+    const status = document.getElementById("curate-status");
+    const btn = document.getElementById("curate-btn");
+    const url = input.value.trim();
+    if (!url) return;
+
+    btn.disabled = true;
+    status.className = "status";
+    status.textContent = "Buscando na Shopee, revisando título e salvando... (pode levar alguns segundos)";
+
+    try {
+      const res = await api("/api/admin/curate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        status.className = "status error";
+        status.textContent = "❌ " + data.error;
+        return;
+      }
+      status.className = "status ok";
+      status.textContent = `✅ Cadastrado: ${data.title} — ${formatBRL(data.price)}`;
+      input.value = "";
+      loadProducts();
+    } catch (err) {
+      if (err.message !== "unauthorized") {
+        status.className = "status error";
+        status.textContent = "❌ Erro: " + err.message;
+      }
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  // Se já tem senha guardada nesta aba, tenta entrar direto.
+  if (authHeader) {
+    api("/api/admin/products")
+      .then((res) => res.json())
+      .then(() => showApp())
+      .catch(() => {});
+  }
+</script>
+
+</body>
+</html>

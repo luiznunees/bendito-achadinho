@@ -5,10 +5,15 @@
 // URL configurada no Evolution: https://SEU_DOMINIO/api/whatsapp-webhook?token=WEBHOOK_SHARED_SECRET
 // ============================================================
 
-const { getProductInfo, generateAffiliateLink } = require("../lib/shopee");
-const { rewriteTitle } = require("../lib/gemini");
 const { sendWhatsAppMessage } = require("../lib/evolution");
-const { insertProduct } = require("../lib/db");
+const { curateFromUrl, CurateError } = require("../lib/curate");
+
+const CURATE_ERROR_MESSAGES = {
+  PRODUCT_INFO_FAILED: "deu ruim pra buscar esse produto na Shopee 😭 tenta de novo em instantes?",
+  AFFILIATE_LINK_FAILED: "deu ruim pra gerar o link de afiliado 😭 tenta de novo em instantes?",
+  INCOMPLETE_INFO: "consegui achar o produto mas não peguei o preço direitinho 😅 tenta copiar o link direto da página do produto (não o link de compartilhar) e manda de novo.",
+  DB_FAILED: "peguei os dados certinho mas deu erro pra salvar no banco 😬 já fui avisado, tenta de novo daqui a pouco.",
+};
 
 // Aceita qualquer subdomínio antes de shopee.com.br ou shp.ee — a Shopee
 // usa vários (s.shopee.com.br, br.shp.ee, etc.) e um regex fechado demais
@@ -117,56 +122,15 @@ module.exports = async function handler(req, res) {
 
     const shopeeUrl = match[0];
 
-    let info;
-    try {
-      info = await getProductInfo(shopeeUrl);
-    } catch (err) {
-      console.error("whatsapp-webhook: falha ao buscar dados do produto:", err);
-      await sendWhatsAppMessage(senderNumber, "deu ruim pra buscar esse produto na Shopee 😭 tenta de novo em instantes?");
-      res.status(200).end();
-      return;
-    }
-
-    // productOfferV2 (estratégia "keyword") já devolve um link de afiliado
-    // pronto. Só quando cai no fallback de raspagem que precisamos gerar
-    // um separado.
-    let affiliateLink = info.offerLink;
-    if (!affiliateLink) {
-      try {
-        affiliateLink = await generateAffiliateLink(shopeeUrl);
-      } catch (err) {
-        console.error("whatsapp-webhook: falha ao gerar link de afiliado:", err);
-        await sendWhatsAppMessage(senderNumber, "deu ruim pra gerar o link de afiliado 😭 tenta de novo em instantes?");
-        res.status(200).end();
-        return;
-      }
-    }
-
-    if (!info?.title || info.price == null) {
-      await sendWhatsAppMessage(
-        senderNumber,
-        "consegui achar o produto mas não peguei o preço direitinho 😅 tenta copiar o link direto da página do produto (não o link de compartilhar) e manda de novo."
-      );
-      res.status(200).end();
-      return;
-    }
-
-    const finalTitle = await rewriteTitle(info.title);
-
     let saved;
     try {
-      saved = await insertProduct({
-        title: finalTitle,
-        image: info.image || "",
-        emoji: "🛍️",
-        price: info.price,
-        affiliateLink,
-        sourceUrl: info.sourceUrl,
-        rawTitle: info.title,
-      });
+      saved = await curateFromUrl(shopeeUrl);
     } catch (err) {
-      console.error("whatsapp-webhook: falha ao gravar no banco:", err);
-      await sendWhatsAppMessage(senderNumber, "peguei os dados certinho mas deu erro pra salvar no banco 😬 já fui avisado, tenta de novo daqui a pouco.");
+      console.error("whatsapp-webhook: falha na curadoria:", err);
+      const friendly = err instanceof CurateError
+        ? CURATE_ERROR_MESSAGES[err.code] || "deu erro aqui, tenta de novo 😬"
+        : "deu erro aqui, tenta de novo 😬";
+      await sendWhatsAppMessage(senderNumber, friendly);
       res.status(200).end();
       return;
     }
