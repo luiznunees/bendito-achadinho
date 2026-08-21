@@ -102,17 +102,28 @@ module.exports = async function handler(req, res) {
     const shopeeUrl = match[0];
 
     let info;
-    let affiliateLink;
     try {
-      [info, affiliateLink] = await Promise.all([
-        getProductInfo(shopeeUrl),
-        generateAffiliateLink(shopeeUrl),
-      ]);
+      info = await getProductInfo(shopeeUrl);
     } catch (err) {
       console.error("whatsapp-webhook: falha ao buscar dados do produto:", err);
       await sendWhatsAppMessage(senderNumber, "deu ruim pra buscar esse produto na Shopee 😭 tenta de novo em instantes?");
       res.status(200).end();
       return;
+    }
+
+    // productOfferV2 (estratégia "keyword") já devolve um link de afiliado
+    // pronto. Só quando cai no fallback de raspagem que precisamos gerar
+    // um separado.
+    let affiliateLink = info.offerLink;
+    if (!affiliateLink) {
+      try {
+        affiliateLink = await generateAffiliateLink(shopeeUrl);
+      } catch (err) {
+        console.error("whatsapp-webhook: falha ao gerar link de afiliado:", err);
+        await sendWhatsAppMessage(senderNumber, "deu ruim pra gerar o link de afiliado 😭 tenta de novo em instantes?");
+        res.status(200).end();
+        return;
+      }
     }
 
     if (!info?.title || info.price == null) {

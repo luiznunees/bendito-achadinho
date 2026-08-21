@@ -125,6 +125,8 @@ https://SEU_DOMINIO.vercel.app/api/whatsapp-webhook?token=SEU_WEBHOOK_SHARED_SEC
 
 Habilite pelo menos o evento `MESSAGES_UPSERT`.
 
+**A instância precisa estar conectada a um número de WhatsApp de verdade** (status `open`, não `close`) — confira em `GET /instance/fetchInstances` com o apikey. Se estiver `close`, conecte normalmente pela sua interface do Evolution (escaneando o QR code), senão o bot não consegue responder no WhatsApp.
+
 ### Rodar localmente
 
 ```bash
@@ -133,9 +135,12 @@ npx vercel dev
 
 Isso sobe o site + as funções de `/api` localmente (lendo `.env.local` automaticamente), pra testar `/api/products` e simular chamadas ao webhook com `curl` antes de mexer na instância real do Evolution.
 
-### O que ainda está marcado como "ajustar quando testarmos de verdade"
+### Testado com credenciais reais em 2026-08-21
 
-A busca de um produto específico na API da Shopee (`productOfferV2`) e o formato exato do payload do Evolution têm alguns detalhes que só confirmamos com credenciais reais — os comentários em `lib/shopee.js` e `api/whatsapp-webhook.js` marcam exatamente onde. Não é motivo pra travar o primeiro teste real, só significa que pode precisar de um ajuste fino depois de ver a primeira resposta de verdade.
+- **Shopee**: autenticação e `generateShortLink` funcionando. `productOfferV2` filtrado por palavra-chave (extraída do link) funciona muito bem e já devolve um link de afiliado pronto (`offerLink`) — vira a estratégia principal. Busca por `itemId`/`shopId` não foi validada (só testamos com IDs inventados, que deram erro — pode funcionar com um ID real, não checamos ainda).
+- **Gemini**: o modelo usado é `gemini-flash-lite-latest` (configurável via `GEMINI_MODEL`). Modelos "thinking" tipo `gemini-3.6-flash` funcionam mas demoram ~30s pra uma tarefa simples de reescrever título — o `-lite` responde em ~1-2s, então é o padrão.
+- **Supabase**: schema, insert e select confirmados funcionando de ponta a ponta.
+- **Evolution**: envio de mensagem (`sendText`) só funciona com a instância conectada a um WhatsApp real — teste isso antes de considerar o bot pronto.
 
 ## Identidade visual
 
