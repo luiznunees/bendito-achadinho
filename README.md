@@ -16,7 +16,7 @@ assets/hero-logo.jpg        → logo usado no topo do site
 
 api/products.js          → Vercel Function: GET, lista achadinhos ativos do banco
 api/whatsapp-webhook.js  → Vercel Function: recebe o webhook do Evolution API e cadastra produtos
-lib/db.js                → acesso ao banco Postgres (Neon, via @neondatabase/serverless)
+lib/db.js                → acesso ao banco (Supabase, via @supabase/supabase-js)
 lib/shopee.js            → integração com a API de Afiliados da Shopee
 lib/gemini.js            → revisão do título do produto com o Google Gemini
 lib/evolution.js         → envio de mensagens de confirmação de volta pro WhatsApp
@@ -74,29 +74,46 @@ Você manda um link de produto da Shopee pro seu próprio número do bot no What
 
 Copie `.env.example` para `.env.local` e preencha (veja comentários no próprio arquivo pra saber de onde tirar cada uma). As mesmas variáveis precisam ser configuradas em **Project Settings → Environment Variables** na Vercel pra funcionar em produção:
 
-- `DATABASE_URL` — preenchida sozinha ao conectar um banco (veja abaixo).
+- `SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY` — em Project Settings → API no painel do Supabase (veja abaixo). A service role key ignora Row Level Security — nunca vaza pro cliente, só é usada aqui nas funções serverless.
 - `SHOPEE_APP_ID` / `SHOPEE_APP_SECRET` — do seu acesso ao Programa de Afiliados Shopee.
 - `GEMINI_API_KEY` — chave gratuita em [aistudio.google.com](https://aistudio.google.com).
 - `EVOLUTION_API_URL` / `EVOLUTION_INSTANCE_NAME` / `EVOLUTION_INSTANCE_TOKEN` — da sua instância na VPS.
 - `WEBHOOK_SHARED_SECRET` — invente uma string aleatória qualquer, só você precisa saber.
 - `OWNER_WHATSAPP_NUMBER` — seu número (só dígitos, com DDI+DDD, ex: `5511999999999`) — é o único autorizado a cadastrar produto pelo bot.
 
-### Conectar o banco (Neon, via Vercel Marketplace)
+### Criar o projeto e a tabela no Supabase
 
-No painel do projeto na Vercel: **Storage → Create Database → Neon** (tem plano gratuito). Ao conectar, a Vercel já preenche `DATABASE_URL` sozinha nas variáveis de ambiente.
+1. Crie um projeto grátis em [supabase.com](https://supabase.com).
+2. Em **SQL Editor → New query**, cole e rode:
 
-> Nota: `@vercel/postgres` foi descontinuado pela própria Vercel em favor da integração nativa com a Neon — por isso o projeto usa `@neondatabase/serverless` diretamente.
+```sql
+CREATE TABLE products (
+  id SERIAL PRIMARY KEY,
+  title TEXT NOT NULL,
+  image TEXT NOT NULL DEFAULT '',
+  emoji TEXT NOT NULL DEFAULT '🛍️',
+  price NUMERIC(10,2) NOT NULL,
+  affiliate_link TEXT NOT NULL,
+  source_url TEXT,
+  raw_title TEXT,
+  active BOOLEAN NOT NULL DEFAULT TRUE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX idx_products_active_created ON products (active, created_at DESC);
+```
 
-### Criar a tabela e semear os produtos de exemplo
+3. Em **Project Settings → API**, copie a **Project URL** (`SUPABASE_URL`) e a **service_role secret key** (`SUPABASE_SERVICE_ROLE_KEY`).
 
-Depois de ter `DATABASE_URL` disponível localmente (em `.env.local`):
+### Semear os produtos de exemplo
+
+Depois de ter `SUPABASE_URL`/`SUPABASE_SERVICE_ROLE_KEY` em `.env.local`:
 
 ```bash
 npm install
 node --env-file=.env.local scripts/seed.js
 ```
 
-Isso cria a tabela `products` (se ainda não existir) e insere os 5 achadinhos de exemplo, caso o banco esteja vazio.
+Isso insere os 5 achadinhos de exemplo, caso a tabela esteja vazia.
 
 ### Configurar o webhook no Evolution
 
