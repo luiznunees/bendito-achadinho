@@ -22,10 +22,12 @@
 <style>
   :root {
     --red: #e71942;
+    --red-deep: #b3102f;
     --pink: #fa88ab;
     --sticker-pink: #f8d2e1;
     --pale: #fff8fa;
     --ink: #24171b;
+    --muted: #6b6068;
   }
   * { box-sizing: border-box; }
   body {
@@ -38,15 +40,57 @@
   .wrap {
     max-width: 640px;
     margin: 0 auto;
-    padding: 28px 16px 80px;
+    padding: 20px 16px 80px;
+  }
+  header.top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+    gap: 8px;
   }
   h1 {
     font-family: "Baloo 2", sans-serif;
     font-weight: 800;
     color: var(--red);
-    font-size: 22px;
-    margin: 0 0 20px;
+    font-size: 20px;
+    margin: 0;
   }
+  a.site-link {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--red);
+    text-decoration: none;
+    border-bottom: 1px solid var(--sticker-pink);
+  }
+  a.site-link:hover { border-bottom-color: var(--red); }
+
+  .stats {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+  .stat {
+    flex: 1;
+    background: #fff;
+    border-radius: 14px;
+    padding: 12px 14px;
+    box-shadow: 0 2px 8px rgba(21,21,21,0.05);
+  }
+  .stat .num {
+    font-family: "Baloo 2", sans-serif;
+    font-weight: 800;
+    font-size: 20px;
+    color: var(--red);
+    line-height: 1.1;
+  }
+  .stat .label {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
   .card {
     background: #fff;
     border-radius: 16px;
@@ -60,7 +104,14 @@
     color: var(--red);
     margin: 0 0 12px;
   }
-  input[type="text"], input[type="password"] {
+  label.field-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+    margin-bottom: 5px;
+  }
+  input[type="text"], input[type="password"], input[type="number"], input[type="search"] {
     width: 100%;
     padding: 12px 14px;
     border-radius: 10px;
@@ -68,8 +119,10 @@
     font-family: inherit;
     font-size: 14px;
     outline: none;
+    color: var(--ink);
+    background: #fff;
   }
-  input[type="text"]:focus, input[type="password"]:focus {
+  input:focus-visible {
     border-color: var(--pink);
   }
   button {
@@ -89,14 +142,24 @@
   }
   button.secondary {
     background: var(--sticker-pink);
+    color: var(--red-deep);
+  }
+  button.ghost {
+    background: none;
     color: var(--red);
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+  :focus-visible {
+    outline: 2px solid var(--red);
+    outline-offset: 2px;
   }
   .row {
     display: flex;
     gap: 10px;
-    margin-top: 12px;
+    align-items: flex-end;
   }
-  .row input { flex: 1; }
+  .row > div { flex: 1; }
   .status {
     margin-top: 12px;
     font-size: 13px;
@@ -104,12 +167,15 @@
   }
   .status.error { color: var(--red); }
   .status.ok { color: #1a7a3d; }
+  .status.info { color: var(--muted); }
+
+  .search-wrap { margin-bottom: 12px; }
 
   .product {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 12px;
-    padding: 10px 0;
+    padding: 12px 0;
     border-bottom: 1px solid #f1e9ee;
   }
   .product:last-child { border-bottom: none; }
@@ -135,61 +201,107 @@
     color: var(--red);
     font-weight: 700;
     font-size: 13.5px;
+    margin-top: 2px;
   }
   .product .badge {
     display: inline-block;
     font-size: 10px;
     font-weight: 600;
-    color: #999;
-    background: #f1f1f1;
+    color: #555;
+    background: #ececec;
     border-radius: 6px;
     padding: 2px 6px;
     margin-left: 6px;
   }
-  .product button {
-    font-size: 12px;
-    padding: 7px 14px;
+  .product .actions {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+    margin-top: 6px;
+  }
+  .product .actions button {
+    font-size: 11.5px;
+    padding: 6px 12px;
     flex-shrink: 0;
   }
+  .product .main-btn {
+    flex-shrink: 0;
+  }
+  .product .main-btn button {
+    font-size: 12px;
+    padding: 7px 14px;
+  }
 
-  #login-card { max-width: 340px; margin: 80px auto 0; text-align: center; }
+  .edit-fields {
+    display: flex;
+    gap: 8px;
+    margin: 4px 0;
+  }
+  .edit-fields input { font-size: 13px; padding: 8px 10px; }
+
+  #login-card { max-width: 340px; margin: 80px auto 0; }
   #app { display: none; }
+
+  .empty-state {
+    color: var(--muted);
+    font-size: 13px;
+    text-align: center;
+    padding: 20px 0;
+  }
 </style>
 </head>
 <body>
 
   <div class="wrap">
-    <h1>✝️ Painel — Bendito Achadinho</h1>
+    <header class="top">
+      <h1>✝️ Painel — Bendito Achadinho</h1>
+      <a class="site-link" href="/" target="_blank" rel="noopener">Ver site ↗</a>
+    </header>
 
     <div id="login-card" class="card">
       <h2>Entrar</h2>
-      <input type="password" id="password-input" placeholder="Senha do painel" />
-      <div class="row"><button id="login-btn" style="width:100%">Entrar</button></div>
-      <div id="login-status" class="status error"></div>
+      <label class="field-label" for="password-input">Senha do painel</label>
+      <input type="password" id="password-input" autocomplete="current-password" />
+      <div class="row" style="margin-top:12px"><button id="login-btn" style="width:100%">Entrar</button></div>
+      <div id="login-status" class="status error" role="alert" aria-live="polite"></div>
     </div>
 
     <div id="app">
+      <div class="stats" id="stats"></div>
+
       <div class="card">
         <h2>Cadastrar achadinho</h2>
+        <label class="field-label" for="url-input">Link do produto na Shopee</label>
         <div class="row">
-          <input type="text" id="url-input" placeholder="Cole o link do produto na Shopee..." />
+          <div>
+            <input type="text" id="url-input" placeholder="Cole o link aqui..." />
+          </div>
           <button id="curate-btn">Cadastrar</button>
         </div>
-        <div id="curate-status" class="status"></div>
+        <div id="curate-status" class="status" role="status" aria-live="polite"></div>
       </div>
 
       <div class="card">
         <h2>Publicados</h2>
-        <div id="product-list"></div>
+        <div class="search-wrap">
+          <label class="field-label" for="search-input">Buscar por nome</label>
+          <input type="search" id="search-input" placeholder="Digite pra filtrar a lista..." />
+        </div>
+        <div id="product-list" aria-live="polite"></div>
       </div>
     </div>
   </div>
 
 <script>
   let authHeader = sessionStorage.getItem("adminAuth") || "";
+  let allProducts = [];
 
   function formatBRL(value) {
     return "R$ " + Number(value).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  function escapeHtml(str) {
+    return String(str).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   }
 
   async function api(path, options = {}) {
@@ -237,54 +349,146 @@
     }
   }
 
+  function renderStats(products) {
+    const active = products.filter((p) => p.active);
+    const total = active.reduce((sum, p) => sum + p.price, 0);
+    document.getElementById("stats").innerHTML = `
+      <div class="stat"><div class="num">${active.length}</div><div class="label">publicados</div></div>
+      <div class="stat"><div class="num">${formatBRL(total)}</div><div class="label">valor total</div></div>
+    `;
+  }
+
+  function renderProductRow(p) {
+    const photo = p.image
+      ? `<img src="${escapeHtml(p.image)}" alt="" />`
+      : `<div class="emoji" aria-hidden="true">${p.emoji || "🛍️"}</div>`;
+    const badge = p.active ? "" : `<span class="badge">removido</span>`;
+    const toggleLabel = p.active ? "Remover" : "Restaurar";
+
+    return `
+      <div class="product" data-id="${p.id}">
+        ${photo}
+        <div class="info">
+          <div class="view-mode">
+            <div class="title">${escapeHtml(p.title)}${badge}</div>
+            <div class="price">${formatBRL(p.price)}</div>
+            <div class="actions">
+              <button class="ghost copy-btn" data-link="${escapeHtml(p.affiliateLink)}">Copiar link</button>
+              <a class="ghost" style="text-decoration:none;display:inline-block" href="${escapeHtml(p.affiliateLink)}" target="_blank" rel="noopener">Ver produto</a>
+              <button class="ghost edit-btn">Editar</button>
+              <button class="secondary toggle-btn" data-active="${p.active}">${toggleLabel}</button>
+            </div>
+          </div>
+          <div class="edit-mode" style="display:none">
+            <div class="edit-fields">
+              <input type="text" class="edit-title" value="${escapeHtml(p.title)}" aria-label="Editar nome do produto" />
+              <input type="number" step="0.01" min="0.01" class="edit-price" value="${p.price}" style="max-width:100px" aria-label="Editar preço" />
+            </div>
+            <div class="actions">
+              <button class="save-btn">Salvar</button>
+              <button class="ghost cancel-btn">Cancelar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function applyFilterAndRender() {
+    const query = document.getElementById("search-input").value.trim().toLowerCase();
+    const filtered = query
+      ? allProducts.filter((p) => p.title.toLowerCase().includes(query))
+      : allProducts;
+
+    const list = document.getElementById("product-list");
+    if (!filtered.length) {
+      list.innerHTML = `<p class="empty-state">${query ? "Nenhum achadinho bate com essa busca." : "Nenhum achadinho cadastrado ainda."}</p>`;
+      return;
+    }
+    list.innerHTML = filtered.map(renderProductRow).join("");
+    attachRowHandlers();
+  }
+
+  function attachRowHandlers() {
+    document.querySelectorAll(".product").forEach((row) => {
+      const id = row.dataset.id;
+
+      row.querySelector(".copy-btn")?.addEventListener("click", async (e) => {
+        const btn = e.currentTarget;
+        try {
+          await navigator.clipboard.writeText(btn.dataset.link);
+          const original = btn.textContent;
+          btn.textContent = "Copiado!";
+          setTimeout(() => (btn.textContent = original), 1500);
+        } catch {
+          alert("Não consegui copiar. Link: " + btn.dataset.link);
+        }
+      });
+
+      row.querySelector(".edit-btn")?.addEventListener("click", () => {
+        row.querySelector(".view-mode").style.display = "none";
+        row.querySelector(".edit-mode").style.display = "block";
+        row.querySelector(".edit-title").focus();
+      });
+
+      row.querySelector(".cancel-btn")?.addEventListener("click", () => {
+        row.querySelector(".edit-mode").style.display = "none";
+        row.querySelector(".view-mode").style.display = "block";
+      });
+
+      row.querySelector(".save-btn")?.addEventListener("click", async (e) => {
+        const btn = e.currentTarget;
+        const title = row.querySelector(".edit-title").value.trim();
+        const price = parseFloat(row.querySelector(".edit-price").value);
+        if (!title || !(price > 0)) {
+          alert("Preencha um nome e um preço válido.");
+          return;
+        }
+        btn.disabled = true;
+        try {
+          await api(`/api/admin/products?id=${id}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ title, price }),
+          });
+          await loadProducts();
+        } catch (err) {
+          if (err.message !== "unauthorized") alert("Erro ao salvar: " + err.message);
+        } finally {
+          btn.disabled = false;
+        }
+      });
+
+      row.querySelector(".toggle-btn")?.addEventListener("click", async (e) => {
+        const btn = e.currentTarget;
+        const nextActive = btn.dataset.active !== "true";
+        if (nextActive === false && !confirm("Remover esse achadinho do site?")) return;
+        btn.disabled = true;
+        try {
+          await api(`/api/admin/products?id=${id}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ active: nextActive }),
+          });
+          await loadProducts();
+        } catch (err) {
+          btn.disabled = false;
+        }
+      });
+    });
+  }
+
   async function loadProducts() {
     const list = document.getElementById("product-list");
-    list.textContent = "Carregando...";
+    list.innerHTML = `<p class="empty-state">Carregando...</p>`;
     try {
       const res = await api("/api/admin/products");
-      const products = await res.json();
-      if (!products.length) {
-        list.innerHTML = "<p style='color:#999;font-size:13px'>Nenhum achadinho cadastrado ainda.</p>";
-        return;
-      }
-      list.innerHTML = products.map((p) => {
-        const photo = p.image
-          ? `<img src="${p.image}" alt="" />`
-          : `<div class="emoji">${p.emoji || "🛍️"}</div>`;
-        const badge = p.active ? "" : `<span class="badge">removido</span>`;
-        const btnLabel = p.active ? "Remover" : "Restaurar";
-        return `
-          <div class="product">
-            ${photo}
-            <div class="info">
-              <div class="title">${p.title}${badge}</div>
-              <div class="price">${formatBRL(p.price)}</div>
-            </div>
-            <button class="secondary toggle-btn" data-id="${p.id}" data-active="${p.active}">${btnLabel}</button>
-          </div>
-        `;
-      }).join("");
-
-      list.querySelectorAll(".toggle-btn").forEach((btn) => {
-        btn.addEventListener("click", async () => {
-          const id = btn.dataset.id;
-          const nextActive = btn.dataset.active !== "true";
-          btn.disabled = true;
-          try {
-            await api(`/api/admin/products?id=${id}`, {
-              method: "PATCH",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ active: nextActive }),
-            });
-            loadProducts();
-          } catch (err) {
-            btn.disabled = false;
-          }
-        });
-      });
+      allProducts = await res.json();
+      renderStats(allProducts);
+      applyFilterAndRender();
     } catch (err) {
       if (err.message !== "unauthorized") {
-        list.innerHTML = "<p style='color:var(--red);font-size:13px'>Erro ao carregar: " + err.message + "</p>";
+        list.innerHTML = `<p class="status error">Erro ao carregar: ${escapeHtml(err.message)}</p>`;
       }
     }
   }
@@ -293,6 +497,7 @@
   document.getElementById("password-input").addEventListener("keydown", (e) => {
     if (e.key === "Enter") tryLogin();
   });
+  document.getElementById("search-input").addEventListener("input", applyFilterAndRender);
 
   document.getElementById("curate-btn").addEventListener("click", async () => {
     const input = document.getElementById("url-input");
@@ -302,7 +507,7 @@
     if (!url) return;
 
     btn.disabled = true;
-    status.className = "status";
+    status.className = "status info";
     status.textContent = "Buscando na Shopee, revisando título e salvando... (pode levar alguns segundos)";
 
     try {
@@ -317,8 +522,13 @@
         status.textContent = "❌ " + data.error;
         return;
       }
-      status.className = "status ok";
-      status.textContent = `✅ Cadastrado: ${data.title} — ${formatBRL(data.price)}`;
+      if (data.duplicate) {
+        status.className = "status info";
+        status.textContent = `🔁 Esse já estava cadastrado: ${data.title} — ${formatBRL(data.price)}`;
+      } else {
+        status.className = "status ok";
+        status.textContent = `✅ Cadastrado: ${data.title} — ${formatBRL(data.price)}`;
+      }
       input.value = "";
       loadProducts();
     } catch (err) {
@@ -330,11 +540,13 @@
       btn.disabled = false;
     }
   });
+  document.getElementById("url-input").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") document.getElementById("curate-btn").click();
+  });
 
   // Se já tem senha guardada nesta aba, tenta entrar direto.
   if (authHeader) {
     api("/api/admin/products")
-      .then((res) => res.json())
       .then(() => showApp())
       .catch(() => {});
   }

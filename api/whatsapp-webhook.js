@@ -128,7 +128,8 @@ module.exports = async function handler(req, res) {
       return;
     }
 
-    await sendWhatsAppMessage(senderNumber, `✅ Cadastrado: ${saved.title} — ${formatBRL(saved.price)}`);
+    const prefix = saved.duplicate ? "🔁 Esse já estava cadastrado" : "✅ Cadastrado";
+    await sendWhatsAppMessage(senderNumber, `${prefix}: ${saved.title} — ${formatBRL(saved.price)}`);
     res.status(200).end();
   } catch (err) {
     console.error("whatsapp-webhook: erro inesperado:", err);
