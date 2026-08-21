@@ -1,5 +1,5 @@
 const { requireAdminAuth } = require("../../lib/adminAuth");
-const { curateFromUrl } = require("../../lib/curate");
+const { curateFromUrl, extractShopeeLink } = require("../../lib/curate");
 
 module.exports = async function handler(req, res) {
   if (!requireAdminAuth(req, res)) return;
@@ -10,15 +10,19 @@ module.exports = async function handler(req, res) {
   }
 
   const body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
-  const url = (body?.url || "").trim();
+  // Aceita tanto { url } (link limpo, colado no painel) quanto { text }
+  // (texto cru compartilhado de outro app, ex: Atalhos do iPhone a partir
+  // do "Compartilhar" do app da Shopee) — extrai o link de qualquer um dos dois.
+  const raw = (body?.url || body?.text || "").trim();
+  const shopeeUrl = extractShopeeLink(raw) || (/^https?:\/\//i.test(raw) ? raw : null);
 
-  if (!url) {
-    res.status(400).json({ error: "Envie { url } no corpo da requisição." });
+  if (!shopeeUrl) {
+    res.status(400).json({ error: "Não encontrei um link da Shopee no texto enviado." });
     return;
   }
 
   try {
-    const saved = await curateFromUrl(url);
+    const saved = await curateFromUrl(shopeeUrl);
     res.status(200).json(saved);
   } catch (err) {
     console.error("admin/curate: falha:", err);

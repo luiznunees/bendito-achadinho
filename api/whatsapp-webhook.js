@@ -6,7 +6,7 @@
 // ============================================================
 
 const { sendWhatsAppMessage } = require("../lib/evolution");
-const { curateFromUrl, CurateError } = require("../lib/curate");
+const { curateFromUrl, CurateError, extractShopeeLink } = require("../lib/curate");
 
 const CURATE_ERROR_MESSAGES = {
   PRODUCT_INFO_FAILED: "deu ruim pra buscar esse produto na Shopee 😭 tenta de novo em instantes?",
@@ -14,11 +14,6 @@ const CURATE_ERROR_MESSAGES = {
   INCOMPLETE_INFO: "consegui achar o produto mas não peguei o preço direitinho 😅 tenta copiar o link direto da página do produto (não o link de compartilhar) e manda de novo.",
   DB_FAILED: "peguei os dados certinho mas deu erro pra salvar no banco 😬 já fui avisado, tenta de novo daqui a pouco.",
 };
-
-// Aceita qualquer subdomínio antes de shopee.com.br ou shp.ee — a Shopee
-// usa vários (s.shopee.com.br, br.shp.ee, etc.) e um regex fechado demais
-// já deixou passar batido um link real de teste (br.shp.ee).
-const SHOPEE_LINK_REGEX = /https?:\/\/(?:[a-z0-9-]+\.)*(?:shopee\.com\.br|shp\.ee)\/\S+/i;
 
 function formatBRL(value) {
   return "R$ " + Number(value).toLocaleString("pt-BR", {
@@ -112,15 +107,13 @@ module.exports = async function handler(req, res) {
     }
 
     const text = data?.message?.conversation || data?.message?.extendedTextMessage?.text || "";
-    const match = text.match(SHOPEE_LINK_REGEX);
+    const shopeeUrl = extractShopeeLink(text);
 
-    if (!match) {
+    if (!shopeeUrl) {
       await sendWhatsAppMessage(senderNumber, "não encontrei um link da Shopee nessa mensagem 👀 manda o link do produto que eu cadastro!");
       res.status(200).end();
       return;
     }
-
-    const shopeeUrl = match[0];
 
     let saved;
     try {
