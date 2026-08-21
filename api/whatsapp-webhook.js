@@ -10,7 +10,10 @@ const { rewriteTitle } = require("../lib/gemini");
 const { sendWhatsAppMessage } = require("../lib/evolution");
 const { insertProduct } = require("../lib/db");
 
-const SHOPEE_LINK_REGEX = /https?:\/\/(?:s\.shopee\.com\.br|shopee\.com\.br|shp\.ee)\/\S+/i;
+// Aceita qualquer subdomínio antes de shopee.com.br ou shp.ee — a Shopee
+// usa vários (s.shopee.com.br, br.shp.ee, etc.) e um regex fechado demais
+// já deixou passar batido um link real de teste (br.shp.ee).
+const SHOPEE_LINK_REGEX = /https?:\/\/(?:[a-z0-9-]+\.)*(?:shopee\.com\.br|shp\.ee)\/\S+/i;
 
 function formatBRL(value) {
   return "R$ " + Number(value).toLocaleString("pt-BR", {
@@ -48,6 +51,19 @@ function isOwner(senderNumber) {
   return false;
 }
 
+// O WhatsApp às vezes endereça a conversa por "LID" (um pseudo-ID de
+// privacidade, remoteJid tipo "123...@lid") em vez do número de telefone
+// direto — nesse caso o número real vem à parte em `remoteJidAlt`. Sem
+// isso, o bot nunca reconhece o dono (foi exatamente o bug: mensagens
+// reais do WhatsApp chegavam como @lid e caíam silenciosamente aqui).
+function resolvePhoneNumber(key) {
+  const remoteJid = key?.remoteJid || "";
+  if (remoteJid.endsWith("@lid") && key?.remoteJidAlt) {
+    return key.remoteJidAlt.split("@")[0];
+  }
+  return remoteJid.split("@")[0];
+}
+
 module.exports = async function handler(req, res) {
   if (req.method !== "POST") {
     res.status(405).end();
@@ -83,7 +99,7 @@ module.exports = async function handler(req, res) {
       return;
     }
 
-    const senderNumber = remoteJid.split("@")[0];
+    const senderNumber = resolvePhoneNumber(data?.key);
     if (!isOwner(senderNumber)) {
       // Não responde nada pra quem não é o dono — nem confirma que é um bot.
       res.status(200).end();
