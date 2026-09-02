@@ -2,596 +2,1262 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <title>Painel — Bendito Achadinho</title>
 <meta name="robots" content="noindex, nofollow" />
 
-<!-- Permite "Adicionar à Tela de Início" no iPhone: abre sem a barra do
-     Safari (quase como um app) e usa o ícone/nome abaixo. -->
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="apple-mobile-web-app-title" content="Painel" />
-<meta name="theme-color" content="#e71942" />
+<meta name="theme-color" content="#06080d" />
 <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
 <link rel="icon" href="assets/apple-touch-icon.png" />
 
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet" />
 
 <style>
   :root {
-    --red: #e71942;
-    --red-deep: #b3102f;
-    --pink: #fa88ab;
-    --sticker-pink: #f8d2e1;
-    --pale: #fff8fa;
-    --ink: #24171b;
-    --muted: #6b6068;
+    --bg: #06080d;
+    --bg-secondary: #0c1017;
+    --glass: rgba(255,255,255,0.04);
+    --glass-border: rgba(255,255,255,0.08);
+    --glass-hover: rgba(255,255,255,0.07);
+    --glass-strong: rgba(255,255,255,0.06);
+    --ink: #f0f4f8;
+    --ink-secondary: #94a3b8;
+    --muted: #475569;
+    --accent: #06b6d4;
+    --accent-dim: rgba(6,182,212,0.15);
+    --accent-glow: rgba(6,182,212,0.3);
+    --success: #10b981;
+    --success-dim: rgba(16,185,129,0.15);
+    --warning: #f59e0b;
+    --warning-dim: rgba(245,158,11,0.15);
+    --error: #ef4444;
+    --error-dim: rgba(239,68,68,0.15);
+    --radius: 14px;
+    --radius-sm: 10px;
+    --radius-full: 9999px;
+    --font-display: "Plus Jakarta Sans", "Segoe UI", sans-serif;
+    --font-body: "DM Sans", "Segoe UI", sans-serif;
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
   }
   * { box-sizing: border-box; }
   body {
     margin: 0;
-    background: var(--pale);
+    padding: 0;
+    background: var(--bg);
     color: var(--ink);
-    font-family: "Poppins", "Segoe UI", sans-serif;
+    font-family: var(--font-body);
     -webkit-font-smoothing: antialiased;
+    -webkit-tap-highlight-color: transparent;
+    overflow-x: hidden;
   }
-  .wrap {
-    max-width: 640px;
-    margin: 0 auto;
-    padding: 20px 16px 80px;
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 600px 400px at 20% 10%, rgba(6,182,212,0.08), transparent),
+      radial-gradient(ellipse 500px 500px at 80% 80%, rgba(139,92,246,0.06), transparent),
+      radial-gradient(ellipse 400px 300px at 50% 50%, rgba(6,182,212,0.03), transparent);
+    pointer-events: none;
+    z-index: 0;
   }
-  header.top {
+
+  /* ========== Layout ========== */
+  .app-shell {
+    position: relative;
+    z-index: 1;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+  }
+  .app-header {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: rgba(6,8,13,0.8);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--glass-border);
+    padding: 14px 16px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 18px;
-    flex-wrap: wrap;
+  }
+  .app-header h1 {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 17px;
+    color: var(--ink);
+    margin: 0;
+    letter-spacing: -0.3px;
+    display: flex;
+    align-items: center;
     gap: 8px;
   }
-  h1 {
-    font-family: "Baloo 2", sans-serif;
-    font-weight: 800;
-    color: var(--red);
-    font-size: 20px;
-    margin: 0;
+  .app-header h1::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 10px var(--accent-glow), 0 0 20px var(--accent-glow);
   }
-  a.site-link {
-    font-size: 12.5px;
+  .app-header a {
+    font-size: 13px;
     font-weight: 600;
-    color: var(--red);
+    color: var(--accent);
     text-decoration: none;
-    border-bottom: 1px solid var(--sticker-pink);
+    opacity: 0.8;
+    transition: opacity 0.15s;
   }
-  a.site-link:hover { border-bottom-color: var(--red); }
-
-  .stats {
+  .app-header a:hover { opacity: 1; }
+  .app-content {
+    flex: 1;
+    padding: 16px 16px calc(70px + var(--safe-bottom));
+    overflow-y: auto;
+  }
+  .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 30;
+    background: rgba(6,8,13,0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid var(--glass-border);
+    padding-bottom: var(--safe-bottom);
     display: flex;
+  }
+  .bottom-nav button {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    padding: 10px 0 8px;
+    background: none;
+    border: none;
+    font-family: var(--font-body);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--muted);
+    cursor: pointer;
+    transition: color 0.2s;
+  }
+  .bottom-nav button svg {
+    width: 22px;
+    height: 22px;
+    transition: filter 0.2s;
+  }
+  .bottom-nav button[aria-pressed="true"] {
+    color: var(--accent);
+  }
+  .bottom-nav button[aria-pressed="true"] svg {
+    filter: drop-shadow(0 0 6px var(--accent-glow));
+  }
+
+  /* ========== Cards ========== */
+  .card {
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 14px;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    transition: border-color 0.2s;
+  }
+  .card:hover {
+    border-color: rgba(255,255,255,0.12);
+  }
+  .card h2 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--ink);
+    margin: 0 0 12px;
+    letter-spacing: -0.2px;
+  }
+
+  /* ========== Stats ========== */
+  .stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 10px;
-    margin-bottom: 18px;
+    margin-bottom: 14px;
   }
   .stat {
-    flex: 1;
-    background: #fff;
-    border-radius: 14px;
-    padding: 12px 14px;
-    box-shadow: 0 2px 8px rgba(21,21,21,0.05);
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius);
+    padding: 14px;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
   }
   .stat .num {
-    font-family: "Baloo 2", sans-serif;
+    font-family: var(--font-display);
     font-weight: 800;
-    font-size: 20px;
-    color: var(--red);
+    font-size: 22px;
+    color: var(--ink);
     line-height: 1.1;
   }
   .stat .label {
-    font-size: 11px;
+    font-size: 12px;
     color: var(--muted);
     margin-top: 2px;
   }
 
-  .card {
-    background: #fff;
-    border-radius: 16px;
-    padding: 18px;
-    box-shadow: 0 4px 14px rgba(21,21,21,0.06);
-    margin-bottom: 20px;
-  }
-  .card h2 {
-    font-family: "Baloo 2", sans-serif;
-    font-size: 16px;
-    color: var(--red);
-    margin: 0 0 12px;
-  }
+  /* ========== Forms ========== */
   label.field-label {
     display: block;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 600;
     color: var(--muted);
-    margin-bottom: 5px;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
   }
-  input[type="text"], input[type="password"], input[type="number"], input[type="search"] {
+  input[type="text"], input[type="password"], input[type="number"], input[type="search"], select, textarea {
     width: 100%;
     padding: 12px 14px;
-    border-radius: 10px;
-    border: 2px solid var(--sticker-pink);
-    font-family: inherit;
-    font-size: 14px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--glass-border);
+    font-family: var(--font-body);
+    font-size: 15px;
     outline: none;
     color: var(--ink);
-    background: #fff;
+    background: rgba(255,255,255,0.03);
+    transition: border-color 0.2s, box-shadow 0.2s;
   }
-  input:focus-visible {
-    border-color: var(--pink);
+  input::placeholder, textarea::placeholder {
+    color: var(--muted);
   }
-  button {
-    font-family: "Baloo 2", sans-serif;
-    font-weight: 700;
-    font-size: 14px;
-    color: #fff;
-    background: var(--red);
-    border: none;
-    border-radius: 999px;
-    padding: 11px 22px;
-    cursor: pointer;
+  input:focus, select:focus, textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-dim), 0 0 20px rgba(6,182,212,0.1);
   }
-  button:disabled {
-    opacity: 0.5;
-    cursor: default;
+  select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23475569' stroke-width='2' fill='none'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    padding-right: 36px;
+    background-color: rgba(255,255,255,0.03);
   }
-  button.secondary {
-    background: var(--sticker-pink);
-    color: var(--red-deep);
-  }
-  button.ghost {
-    background: none;
-    color: var(--red);
-    padding: 6px 10px;
-    font-size: 12px;
-  }
-  :focus-visible {
-    outline: 2px solid var(--red);
-    outline-offset: 2px;
-  }
-  .row {
-    display: flex;
-    gap: 10px;
-    align-items: flex-end;
-  }
-  .row > div { flex: 1; }
-  .status {
-    margin-top: 12px;
-    font-size: 13px;
+  textarea {
+    resize: vertical;
+    min-height: 80px;
     line-height: 1.5;
   }
-  .status.error { color: var(--red); }
-  .status.ok { color: #1a7a3d; }
+
+  /* ========== Buttons ========== */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 14px;
+    padding: 12px 20px;
+    border-radius: var(--radius-sm);
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    min-height: 44px;
+  }
+  .btn:disabled { opacity: 0.4; cursor: default; }
+  .btn-primary {
+    background: var(--accent);
+    color: #000;
+    box-shadow: 0 0 20px var(--accent-dim);
+  }
+  .btn-primary:hover:not(:disabled) {
+    background: #22d3ee;
+    box-shadow: 0 0 30px var(--accent-glow);
+  }
+  .btn-secondary {
+    background: var(--glass-strong);
+    color: var(--ink-secondary);
+    border: 1px solid var(--glass-border);
+  }
+  .btn-secondary:hover:not(:disabled) {
+    background: var(--glass-hover);
+    border-color: rgba(255,255,255,0.15);
+  }
+  .btn-ghost {
+    background: none;
+    color: var(--accent);
+    padding: 8px 12px;
+    min-height: 36px;
+    font-size: 13px;
+  }
+  .btn-ghost:hover:not(:disabled) { background: var(--accent-dim); }
+  .btn-danger {
+    background: none;
+    color: var(--muted);
+    padding: 8px 12px;
+    min-height: 36px;
+    font-size: 13px;
+  }
+  .btn-danger:hover:not(:disabled) { background: var(--error-dim); color: var(--error); }
+  .btn-sm {
+    font-size: 12px;
+    padding: 7px 14px;
+    min-height: 32px;
+  }
+
+  /* ========== Row ========== */
+  .row { display: flex; gap: 10px; align-items: flex-end; }
+  .row > div { flex: 1; }
+
+  /* ========== Status ========== */
+  .status { margin-top: 10px; font-size: 13px; line-height: 1.5; }
+  .status.error { color: var(--error); }
+  .status.ok { color: var(--success); }
   .status.info { color: var(--muted); }
 
-  .search-wrap { margin-bottom: 12px; }
-
+  /* ========== Tabs ========== */
   .tabs {
     display: flex;
-    gap: 6px;
-    margin-bottom: 12px;
+    gap: 0;
+    margin-bottom: 14px;
+    border-bottom: 1px solid var(--glass-border);
   }
   .tabs button {
     flex: 1;
-    background: var(--sticker-pink);
-    color: var(--red-deep);
-    font-size: 12.5px;
-    padding: 9px 0;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--muted);
+    padding: 10px 4px;
+    cursor: pointer;
+    transition: color 0.2s, border-color 0.2s;
   }
   .tabs button[aria-pressed="true"] {
-    background: var(--red);
-    color: #fff;
+    color: var(--accent);
+    border-bottom-color: var(--accent);
   }
 
+  .search-wrap { margin-bottom: 12px; }
+
+  /* ========== Products ========== */
   .product {
     display: flex;
     align-items: flex-start;
     gap: 12px;
-    padding: 12px 0;
-    border-bottom: 1px solid #f1e9ee;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--glass-border);
   }
   .product:last-child { border-bottom: none; }
-  .product img, .product .emoji {
-    width: 56px;
-    height: 56px;
-    border-radius: 10px;
+  .product-img {
+    width: 52px;
+    height: 52px;
+    border-radius: var(--radius-sm);
     object-fit: cover;
     flex-shrink: 0;
-    background: var(--sticker-pink);
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 26px;
+    font-size: 22px;
+    overflow: hidden;
+  }
+  .product-img img {
+    width: 100%;
+    height: 100%;
+    border-radius: var(--radius-sm);
+    object-fit: cover;
   }
   .product .info { flex: 1; min-width: 0; }
   .product .title {
     font-weight: 600;
-    font-size: 13.5px;
+    font-size: 14px;
     line-height: 1.3;
+    color: var(--ink);
   }
   .product .price {
-    color: var(--red);
+    color: var(--accent);
     font-weight: 700;
-    font-size: 13.5px;
+    font-size: 14px;
     margin-top: 2px;
   }
   .product .badge {
     display: inline-block;
     font-size: 10px;
     font-weight: 600;
-    color: #555;
-    background: #ececec;
-    border-radius: 6px;
-    padding: 2px 6px;
+    color: var(--muted);
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-full);
+    padding: 2px 8px;
     margin-left: 6px;
+    vertical-align: middle;
   }
   .product .actions {
     display: flex;
     gap: 4px;
     flex-wrap: wrap;
-    margin-top: 6px;
+    margin-top: 8px;
   }
-  .product .actions button {
-    font-size: 11.5px;
-    padding: 6px 12px;
-    flex-shrink: 0;
-  }
-  .product .main-btn {
-    flex-shrink: 0;
-  }
-  .product .main-btn button {
-    font-size: 12px;
-    padding: 7px 14px;
-  }
-
   .edit-fields {
     display: flex;
     gap: 8px;
-    margin: 4px 0;
+    margin: 6px 0;
   }
-  .edit-fields input { font-size: 13px; padding: 8px 10px; }
+  .edit-fields input { font-size: 14px; padding: 10px 12px; }
 
-  #login-card { max-width: 340px; margin: 80px auto 0; }
+  /* ========== Schedule ========== */
+  .date-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .date-nav button {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-sm);
+    padding: 0;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    color: var(--ink);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .date-nav button:hover {
+    background: var(--glass-hover);
+    border-color: rgba(255,255,255,0.15);
+  }
+  .date-nav .date-label {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--ink);
+    min-width: 170px;
+    text-align: center;
+  }
+  .slot {
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius);
+    padding: 14px;
+    margin-bottom: 10px;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    transition: border-color 0.2s;
+  }
+  .slot:hover { border-color: rgba(255,255,255,0.12); }
+  .slot.slot-posted {
+    border-color: rgba(16,185,129,0.3);
+    background: var(--success-dim);
+  }
+  .slot.slot-skipped {
+    border-color: var(--glass-border);
+    opacity: 0.5;
+  }
+  .slot-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+  }
+  .slot-time {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 16px;
+    color: var(--ink);
+  }
+  .slot-status {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: var(--radius-full);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .slot-status.pending { background: var(--warning-dim); color: var(--warning); }
+  .slot-status.posted { background: var(--success-dim); color: var(--success); }
+  .slot-status.skipped { background: var(--glass); color: var(--muted); border: 1px solid var(--glass-border); }
+  .slot-meta {
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 10px;
+    line-height: 1.4;
+  }
+  .slot-meta strong { color: var(--ink-secondary); }
+  .slot textarea { margin-bottom: 10px; font-size: 14px; min-height: 64px; }
+  .slot select { margin-bottom: 10px; font-size: 14px; }
+  .slot-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+
+  /* ========== Templates ========== */
+  .template-add-form .row { flex-wrap: wrap; gap: 8px; }
+  .template-add-form select,
+  .template-add-form textarea { font-size: 14px; }
+  .template-item {
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius);
+    padding: 14px;
+    margin-bottom: 8px;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    transition: border-color 0.2s;
+  }
+  .template-item:hover { border-color: rgba(255,255,255,0.12); }
+  .template-item .tpl-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 4px;
+  }
+  .template-item .tpl-slot {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 13px;
+    color: var(--ink);
+  }
+  .template-item .tpl-category {
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .template-item .tpl-hook {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: var(--radius-full);
+    background: var(--accent-dim);
+    color: var(--accent);
+    margin-bottom: 8px;
+    letter-spacing: 0.3px;
+  }
+  .template-item .tpl-text {
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--ink-secondary);
+    margin-bottom: 10px;
+    white-space: pre-wrap;
+  }
+  .template-item .tpl-actions {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+  .tpl-edit-form {
+    display: none;
+    margin-top: 10px;
+  }
+  .tpl-edit-form textarea {
+    font-size: 14px;
+    min-height: 56px;
+    margin-bottom: 8px;
+  }
+
+  /* ========== Login ========== */
+  #login-card {
+    max-width: 360px;
+    margin: 0 auto;
+    padding-top: 80px;
+  }
+  #login-card h2 {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 20px;
+    text-align: center;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+  #login-card h2::before {
+    content: "";
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 12px var(--accent-glow), 0 0 24px var(--accent-glow);
+  }
   #app { display: none; }
 
   .empty-state {
     color: var(--muted);
     font-size: 13px;
     text-align: center;
-    padding: 20px 0;
+    padding: 24px 0;
+  }
+
+  /* ========== Sub-tabs ========== */
+  .sub-tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: 14px;
+    border-bottom: 1px solid var(--glass-border);
+  }
+  .sub-tabs button {
+    flex: 1;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--muted);
+    padding: 10px 4px;
+    cursor: pointer;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .sub-tabs button[aria-pressed="true"] {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+
+  /* ========== Filter pills ========== */
+  .filter-pills {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 14px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 2px;
+  }
+  .filter-pills::-webkit-scrollbar { display: none; }
+  .filter-pills button {
+    flex-shrink: 0;
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-full);
+    font-family: var(--font-body);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+    padding: 6px 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .filter-pills button[aria-pressed="true"] {
+    background: var(--accent-dim);
+    border-color: rgba(6,182,212,0.3);
+    color: var(--accent);
+    box-shadow: 0 0 12px var(--accent-dim);
+  }
+
+  /* ========== Glow dot animation ========== */
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+  .app-header h1::before {
+    animation: pulse 2s ease-in-out infinite;
+  }
+  #login-card h2::before {
+    animation: pulse 2s ease-in-out infinite;
   }
 </style>
 </head>
 <body>
 
-  <div class="wrap">
-    <header class="top">
-      <h1>✝️ Painel — Bendito Achadinho</h1>
-      <a class="site-link" href="/" target="_blank" rel="noopener">Ver site ↗</a>
-    </header>
+<div class="app-shell">
 
-    <div id="login-card" class="card">
-      <h2>Entrar</h2>
-      <label class="field-label" for="password-input">Senha do painel</label>
-      <input type="password" id="password-input" autocomplete="current-password" />
-      <div class="row" style="margin-top:12px"><button id="login-btn" style="width:100%">Entrar</button></div>
-      <div id="login-status" class="status error" role="alert" aria-live="polite"></div>
+  <header class="app-header">
+    <h1>Painel</h1>
+    <div style="display:flex;align-items:center;gap:12px">
+      <button id="logout-btn" type="button" style="display:none;background:var(--glass);border:1px solid var(--glass-border);color:var(--muted);border-radius:var(--radius-full);padding:6px 12px;font-family:var(--font-body);font-size:12px;font-weight:600;cursor:pointer;transition:all .2s">Sair</button>
+      <a href="/" target="_blank" rel="noopener" style="font-size:13px;font-weight:600;color:var(--accent);text-decoration:none;opacity:.8;transition:opacity .15s">Ver site ↗</a>
     </div>
+  </header>
 
-    <div id="app">
-      <div class="stats" id="stats"></div>
+  <div id="login-card" class="card">
+    <h2>Entrar</h2>
+    <label class="field-label" for="password-input">Senha</label>
+    <input type="password" id="password-input" autocomplete="current-password" placeholder="••••••••" />
+    <div style="margin-top:14px"><button class="btn btn-primary" id="login-btn" style="width:100%">Entrar</button></div>
+    <div id="login-status" class="status error" role="alert" aria-live="polite"></div>
+  </div>
 
-      <div class="card">
-        <h2>Cadastrar achadinho</h2>
-        <label class="field-label" for="url-input">Link do produto na Shopee</label>
-        <div class="row">
-          <div>
-            <input type="text" id="url-input" placeholder="Cole o link aqui..." />
+  <div id="app">
+    <div class="app-content">
+
+      <!-- PRODUTOS -->
+      <div id="view-products">
+        <div id="dashboard-status" class="card" style="display:none">
+          <h2>Status do Sistema</h2>
+          <div class="stats" id="dash-stats"></div>
+          <div id="dash-details"></div>
+        </div>
+
+        <div class="stats" id="stats"></div>
+
+        <div class="card">
+          <h2>Cadastrar achadinho</h2>
+          <label class="field-label" for="url-input">Link do produto na Shopee</label>
+          <div class="row">
+            <div>
+              <input type="text" id="url-input" placeholder="Cole o link aqui..." />
+            </div>
+            <button class="btn btn-primary" id="curate-btn">Cadastrar</button>
           </div>
-          <button id="curate-btn">Cadastrar</button>
+          <div id="curate-status" class="status" role="status" aria-live="polite"></div>
         </div>
-        <div id="curate-status" class="status" role="status" aria-live="polite"></div>
+
+        <div class="card">
+          <h2>Publicados</h2>
+          <div class="tabs" role="tablist">
+            <button type="button" class="status-tab" data-status="active" aria-pressed="true">Ativos</button>
+            <button type="button" class="status-tab" data-status="inactive" aria-pressed="false">Removidos</button>
+            <button type="button" class="status-tab" data-status="all" aria-pressed="false">Todos</button>
+          </div>
+          <div class="search-wrap">
+            <input type="search" id="search-input" placeholder="Buscar produto..." />
+          </div>
+          <div id="product-list" aria-live="polite"></div>
+        </div>
       </div>
 
-      <div class="card">
-        <h2>Publicados</h2>
-        <div class="tabs" role="tablist" aria-label="Filtrar por status">
-          <button type="button" class="status-tab" data-status="active" aria-pressed="true">Ativos</button>
-          <button type="button" class="status-tab" data-status="inactive" aria-pressed="false">Removidos</button>
-          <button type="button" class="status-tab" data-status="all" aria-pressed="false">Todos</button>
+      <!-- CONTEÚDO -->
+      <div id="view-content" style="display:none">
+        <div class="sub-tabs" role="tablist">
+          <button type="button" class="content-tab" data-content-tab="schedule" aria-pressed="true">Agenda</button>
+          <button type="button" class="content-tab" data-content-tab="templates" aria-pressed="false">Templates</button>
         </div>
-        <div class="search-wrap">
-          <label class="field-label" for="search-input">Buscar por nome</label>
-          <input type="search" id="search-input" placeholder="Digite pra filtrar a lista..." />
+
+        <div id="content-schedule">
+          <div class="card">
+            <h2>Agenda do dia</h2>
+            <div class="date-nav">
+              <button id="prev-day" type="button">‹</button>
+              <span class="date-label" id="date-label"></span>
+              <button id="next-day" type="button">›</button>
+            </div>
+            <div id="schedule-list" aria-live="polite"></div>
+          </div>
         </div>
-        <div id="product-list" aria-live="polite"></div>
+
+        <div id="content-templates" style="display:none">
+          <div class="card">
+            <h2>Novo template</h2>
+            <div class="template-add-form">
+              <div class="row" style="margin-bottom:10px">
+                <div>
+                  <label class="field-label" for="tpl-time">Horário</label>
+                  <select id="tpl-time">
+                    <option value="08h">08h</option>
+                    <option value="11h">11h</option>
+                    <option value="13h">13h</option>
+                    <option value="15h">15h</option>
+                    <option value="18h">18h</option>
+                    <option value="21h">21h</option>
+                    <option value="23h">23h</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="field-label" for="tpl-hook">Gancho</label>
+                  <select id="tpl-hook">
+                    <option value="identidade">Identidade</option>
+                    <option value="beneficio">Benefício</option>
+                    <option value="curiosidade">Curiosidade</option>
+                    <option value="urgencia">Urgência</option>
+                  </select>
+                </div>
+              </div>
+              <label class="field-label" for="tpl-category">Categoria</label>
+              <input type="text" id="tpl-category" placeholder="Ex: Terços e papelaria" style="margin-bottom:10px" />
+              <label class="field-label" for="tpl-text">Texto do template</label>
+              <textarea id="tpl-text" placeholder="Escreva a frase aqui..."></textarea>
+              <div style="margin-top:10px">
+                <button class="btn btn-primary" id="tpl-save-btn">Salvar template</button>
+              </div>
+              <div id="tpl-save-status" class="status" role="status" aria-live="polite"></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h2>Templates salvos</h2>
+            <div class="filter-pills" role="tablist">
+              <button type="button" class="tpl-filter" data-tpl-slot="all" aria-pressed="true">Todos</button>
+              <button type="button" class="tpl-filter" data-tpl-slot="08h" aria-pressed="false">08h</button>
+              <button type="button" class="tpl-filter" data-tpl-slot="11h" aria-pressed="false">11h</button>
+              <button type="button" class="tpl-filter" data-tpl-slot="13h" aria-pressed="false">13h</button>
+              <button type="button" class="tpl-filter" data-tpl-slot="15h" aria-pressed="false">15h</button>
+              <button type="button" class="tpl-filter" data-tpl-slot="18h" aria-pressed="false">18h</button>
+              <button type="button" class="tpl-filter" data-tpl-slot="21h" aria-pressed="false">21h</button>
+              <button type="button" class="tpl-filter" data-tpl-slot="23h" aria-pressed="false">23h</button>
+            </div>
+            <div id="template-list" aria-live="polite"></div>
+          </div>
+        </div>
       </div>
+
+      <!-- CONFIGURAÇÕES -->
+      <div id="view-config" style="display:none">
+        <div class="card">
+          <h2>Automação</h2>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-bottom:12px">
+            <input type="checkbox" id="cfg-enabled" style="width:20px;height:20px;accent-color:var(--accent)" />
+            <span style="font-size:14px;color:var(--ink)">Ligado (publica no grupo todos os dias)</span>
+          </label>
+          <div id="pause-section" style="display:none;margin-top:8px">
+            <button type="button" id="cfg-pause-btn" class="btn btn-outline" style="width:100%">
+              ⏸ Pausar até amanhã (08h)
+            </button>
+            <div id="pause-active" style="display:none;margin-top:8px;padding:10px;background:var(--bg);border-radius:var(--radius-sm);border:1px dashed #f59e0b;font-size:13px;color:var(--ink-secondary)">
+              <span id="pause-info"></span>
+              <button type="button" id="cfg-unpause-btn" class="btn btn-outline" style="margin-top:6px;padding:4px 12px;font-size:12px">
+                Cancelar pausa
+              </button>
+            </div>
+          </div>
+          <div id="cfg-save-status-auto" class="status" role="status" aria-live="polite"></div>
+        </div>
+
+        <div class="card">
+          <h2>Palavras-chave</h2>
+          <label class="field-label" for="cfg-keywords">Buscar na Shopee (separadas por vírgula)</label>
+          <textarea id="cfg-keywords" rows="3" placeholder="terço, bíblia, camiseta gospel..."></textarea>
+        </div>
+
+        <div class="card">
+          <h2>Filtros de oferta</h2>
+          <div class="stats" style="grid-template-columns:1fr 1fr">
+            <div><label class="field-label" for="cfg-min-discount">Desconto mínimo (%)</label><input type="number" id="cfg-min-discount" min="0" max="100" /></div>
+            <div><label class="field-label" for="cfg-min-price">Preço mínimo (R$)</label><input type="number" id="cfg-min-price" min="0" step="0.5" /></div>
+            <div><label class="field-label" for="cfg-max-price">Preço máximo (R$)</label><input type="number" id="cfg-max-price" min="0" step="0.5" /></div>
+            <div><label class="field-label" for="cfg-max-offers">Máx. ofertas/execução</label><input type="number" id="cfg-max-offers" min="1" max="20" /></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Horários e envio</h2>
+          <div class="stats" style="grid-template-columns:1fr 1fr">
+            <div><label class="field-label" for="cfg-delay">Atraso entre msgs (seg)</label><input type="number" id="cfg-delay" min="1" max="60" /></div>
+            <div><label class="field-label" for="cfg-sort">Ordenar por</label>
+              <select id="cfg-sort">
+                <option value="5">Comissão</option>
+                <option value="1">Relevância</option>
+                <option value="2">Mais vendidos</option>
+                <option value="4">Menor preço</option>
+              </select>
+            </div>
+          </div>
+          <div style="margin-top:12px">
+            <label class="field-label" for="cfg-coupon">Cupom (vazio = sem cupom)</label>
+            <input type="text" id="cfg-coupon" placeholder="BENDITO10" />
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Filtro de nicho cristão</h2>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-bottom:12px">
+            <input type="checkbox" id="cfg-require-niche" style="width:18px;height:18px;accent-color:var(--accent)" />
+            <span style="font-size:14px;color:var(--ink)">Ativar filtro de nicho (bloqueia ruído)</span>
+          </label>
+          <div><label class="field-label" for="cfg-niche-terms">Termos cristãos (separados por vírgula)</label>
+            <textarea id="cfg-niche-terms" rows="2"></textarea></div>
+          <div style="margin-top:10px"><label class="field-label" for="cfg-block-terms">Termos de exclusão (separados por vírgula)</label>
+            <textarea id="cfg-block-terms" rows="2"></textarea></div>
+        </div>
+
+        <div class="card">
+          <h2>Grupo & Segurança</h2>
+          <div><label class="field-label" for="cfg-group-id">GROUP_WHATSAPP_ID</label>
+            <input type="text" id="cfg-group-id" placeholder="120363...@g.us" /></div>
+          <div style="margin-top:10px"><label class="field-label" for="cfg-token">AUTOPUBLISH_TOKEN</label>
+            <input type="text" id="cfg-token" placeholder="token de segurança" /></div>
+        </div>
+
+        <div style="margin-top:14px">
+          <button class="btn btn-primary" id="cfg-save-btn" style="width:100%">Salvar configurações</button>
+          <div id="cfg-save-status" class="status" role="status" aria-live="polite"></div>
+        </div>
+      </div>
+
     </div>
   </div>
 
+  <nav class="bottom-nav" id="bottom-nav" style="display:none">
+    <button type="button" data-view="products" aria-pressed="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+      Produtos
+    </button>
+    <button type="button" data-view="content" aria-pressed="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      Conteúdo
+    </button>
+    <button type="button" data-view="config" aria-pressed="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+      Config
+    </button>
+  </nav>
+
+</div>
+
 <script>
-  let authHeader = sessionStorage.getItem("adminAuth") || "";
+  const TIME_SLOTS = ["08h","11h","13h","15h","18h","21h","23h"];
+  const SLOT_CONFIG = {
+    "08h":{category:"Terços e papelaria",hook:"identidade"},
+    "11h":{category:"Decoração católica",hook:"beneficio"},
+    "13h":{category:"Moda e acessórios",hook:"curiosidade"},
+    "15h":{category:"Presentes / comunhão",hook:"beneficio"},
+    "18h":{category:"Livros espirituais",hook:"identidade"},
+    "21h":{category:"Terços e decoração (mix)",hook:"urgencia"},
+    "23h":{category:"Joias e presentes",hook:"urgencia"},
+  };
+  const HOOK_LABELS = {identidade:"Identidade",beneficio:"Benefício",curiosidade:"Curiosidade",urgencia:"Urgência"};
+
+  let authHeader = localStorage.getItem("adminAuth") || "";
   let allProducts = [];
   let statusFilter = "active";
+  let currentView = "products";
+  let currentContentTab = "schedule";
+  let selectedDate = new Date();
+  let currentPosts = [];
+  let allTemplates = [];
+  let tplFilterSlot = "all";
 
-  function formatBRL(value) {
-    return "R$ " + Number(value).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  }
+  function formatBRL(v) { return "R$ "+Number(v).toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2}); }
+  function escapeHtml(s) { return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+  function formatDateBR(s) { const [y,m,d]=s.split("-"); return `${d}/${m}/${y}`; }
+  function toLocalDateStr(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; }
+  function toWeekday(s) { const days=["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"]; const [y,m,d]=s.split("-").map(Number); return days[new Date(y,m-1,d).getDay()]; }
 
-  function escapeHtml(str) {
-    return String(str).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-  }
-
-  async function api(path, options = {}) {
-    const res = await fetch(path, {
-      ...options,
-      headers: { ...(options.headers || {}), Authorization: authHeader },
-    });
-    if (res.status === 401) {
-      sessionStorage.removeItem("adminAuth");
-      showLogin("Senha incorreta ou sessão expirada.");
-      throw new Error("unauthorized");
-    }
+  async function api(path, opts = {}) {
+    const res = await fetch(path, { ...opts, headers: { ...(opts.headers || {}), Authorization: authHeader } });
+    if (res.status === 401) { localStorage.removeItem("adminAuth"); showLogin("Sessão expirada."); throw new Error("unauthorized"); }
     return res;
   }
 
-  function showLogin(message) {
+  function showLogin(msg) {
     document.getElementById("app").style.display = "none";
+    document.getElementById("bottom-nav").style.display = "none";
     document.getElementById("login-card").style.display = "block";
-    document.getElementById("login-status").textContent = message || "";
+    document.getElementById("logout-btn").style.display = "none";
+    document.getElementById("login-status").textContent = msg || "";
   }
-
   function showApp() {
     document.getElementById("login-card").style.display = "none";
     document.getElementById("app").style.display = "block";
+    document.getElementById("bottom-nav").style.display = "flex";
+    document.getElementById("logout-btn").style.display = "block";
     loadProducts();
+    loadDashboard();
   }
-
   async function tryLogin() {
-    const password = document.getElementById("password-input").value;
-    authHeader = "Basic " + btoa(":" + password);
-    const btn = document.getElementById("login-btn");
-    btn.disabled = true;
+    const pw = document.getElementById("password-input").value;
+    authHeader = "Basic "+btoa(":"+pw);
+    const btn = document.getElementById("login-btn"); btn.disabled = true;
     try {
-      const res = await fetch("/api/admin/products", { headers: { Authorization: authHeader } });
-      if (res.status === 401) {
-        document.getElementById("login-status").textContent = "Senha incorreta.";
-        return;
-      }
-      sessionStorage.setItem("adminAuth", authHeader);
-      showApp();
-    } catch (err) {
-      document.getElementById("login-status").textContent = "Erro de conexão: " + err.message;
-    } finally {
-      btn.disabled = false;
-    }
+      const r = await fetch("/api/admin/products",{headers:{Authorization:authHeader}});
+      if (r.status===401) { document.getElementById("login-status").textContent="Senha incorreta."; return; }
+      localStorage.setItem("adminAuth",authHeader); showApp();
+    } catch(e) { document.getElementById("login-status").textContent="Erro: "+e.message; }
+    finally { btn.disabled=false; }
   }
 
-  function renderStats(products) {
-    const active = products.filter((p) => p.active);
-    const total = active.reduce((sum, p) => sum + p.price, 0);
-    document.getElementById("stats").innerHTML = `
-      <div class="stat"><div class="num">${active.length}</div><div class="label">publicados</div></div>
-      <div class="stat"><div class="num">${formatBRL(total)}</div><div class="label">valor total</div></div>
-    `;
+  function switchView(v) {
+    currentView=v;
+    document.querySelectorAll(".bottom-nav button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.view===v)));
+    document.getElementById("view-products").style.display=v==="products"?"block":"none";
+    document.getElementById("view-content").style.display=v==="content"?"block":"none";
+    document.getElementById("view-config").style.display=v==="config"?"block":"none";
+    if(v==="content"&&currentContentTab==="schedule") loadSchedule();
+    if(v==="content"&&currentContentTab==="templates") loadTemplates();
+    if(v==="products") loadDashboard();
+    if(v==="config") loadConfig();
+  }
+  function switchContentTab(t) {
+    currentContentTab=t;
+    document.querySelectorAll(".content-tab").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.contentTab===t)));
+    document.getElementById("content-schedule").style.display=t==="schedule"?"block":"none";
+    document.getElementById("content-templates").style.display=t==="templates"?"block":"none";
+    if(t==="schedule") loadSchedule();
+    if(t==="templates") loadTemplates();
   }
 
+  // PRODUTOS
+  function renderStats(p) {
+    const a=p.filter(x=>x.active), total=a.reduce((s,x)=>s+x.price,0);
+    document.getElementById("stats").innerHTML=`<div class="stat"><div class="num">${a.length}</div><div class="label">publicados</div></div><div class="stat"><div class="num">${formatBRL(total)}</div><div class="label">valor total</div></div>`;
+  }
   function renderProductRow(p) {
-    const photo = p.image
-      ? `<img src="${escapeHtml(p.image)}" alt="" />`
-      : `<div class="emoji" aria-hidden="true">${p.emoji || "🛍️"}</div>`;
-    const badge = p.active ? "" : `<span class="badge">removido</span>`;
-    const toggleLabel = p.active ? "Remover" : "Restaurar";
+    const photo=p.image?`<img src="${escapeHtml(p.image)}" alt="" />`:`<span>${p.emoji||"📦"}</span>`;
+    const badge=p.active?"":`<span class="badge">removido</span>`;
+    const tl=p.active?"Remover":"Restaurar";
+    return `<div class="product" data-id="${p.id}"><div class="product-img">${photo}</div><div class="info"><div class="view-mode"><div class="title">${escapeHtml(p.title)}${badge}</div><div class="price">${formatBRL(p.price)}</div><div class="actions"><button class="btn btn-ghost btn-sm copy-btn" data-link="${escapeHtml(p.affiliateLink)}">Copiar link</button><a class="btn btn-ghost btn-sm" style="text-decoration:none" href="${escapeHtml(p.affiliateLink)}" target="_blank" rel="noopener">Ver</a><button class="btn btn-ghost btn-sm edit-btn">Editar</button><button class="btn btn-secondary btn-sm toggle-btn" data-active="${p.active}">${tl}</button></div></div><div class="edit-mode" style="display:none"><div class="edit-fields"><input type="text" class="edit-title" value="${escapeHtml(p.title)}" /><input type="number" step="0.01" min="0.01" class="edit-price" value="${p.price}" style="max-width:100px" /></div><div class="actions"><button class="btn btn-primary btn-sm save-btn">Salvar</button><button class="btn btn-ghost btn-sm cancel-btn">Cancelar</button></div></div></div></div>`;
+  }
+  function applyFilterAndRender() {
+    const q=document.getElementById("search-input").value.trim().toLowerCase();
+    const bs=allProducts.filter(p=>{if(statusFilter==="active")return p.active;if(statusFilter==="inactive")return!p.active;return true;});
+    const f=q?bs.filter(p=>p.title.toLowerCase().includes(q)):bs;
+    const el=document.getElementById("product-list");
+    if(!f.length){el.innerHTML=`<p class="empty-state">${q?"Nenhum resultado.":{active:"Nenhum ativo.",inactive:"Nenhum removido.",all:"Nenhum cadastrado."}[statusFilter]}</p>`;return;}
+    el.innerHTML=f.map(renderProductRow).join(""); attachRowHandlers();
+  }
+  function attachRowHandlers() {
+    document.querySelectorAll(".product").forEach(row=>{
+      const id=row.dataset.id;
+      row.querySelector(".copy-btn")?.addEventListener("click",async e=>{try{await navigator.clipboard.writeText(e.currentTarget.dataset.link);const t=e.currentTarget.textContent;e.currentTarget.textContent="Copiado!";setTimeout(()=>e.currentTarget.textContent=t,1500);}catch{alert("Link: "+e.currentTarget.dataset.link);}});
+      row.querySelector(".edit-btn")?.addEventListener("click",()=>{row.querySelector(".view-mode").style.display="none";row.querySelector(".edit-mode").style.display="block";row.querySelector(".edit-title").focus();});
+      row.querySelector(".cancel-btn")?.addEventListener("click",()=>{row.querySelector(".edit-mode").style.display="none";row.querySelector(".view-mode").style.display="block";});
+      row.querySelector(".save-btn")?.addEventListener("click",async e=>{const btn=e.currentTarget;const title=row.querySelector(".edit-title").value.trim();const price=parseFloat(row.querySelector(".edit-price").value);if(!title||!(price>0)){alert("Preencha nome e preço.");return;}btn.disabled=true;try{await api(`/api/admin/products?id=${id}`,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({title,price})});await loadProducts();}catch(err){if(err.message!=="unauthorized")alert(err.message);}finally{btn.disabled=false;}});
+      row.querySelector(".toggle-btn")?.addEventListener("click",async e=>{const btn=e.currentTarget;const na=btn.dataset.active!=="true";if(!na&&!confirm("Remover?"))return;btn.disabled=true;try{await api(`/api/admin/products?id=${id}`,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({active:na})});await loadProducts();}catch(err){btn.disabled=false;}});
+    });
+  }
+  async function loadProducts() {
+    const el=document.getElementById("product-list"); el.innerHTML=`<p class="empty-state">Carregando...</p>`;
+    try{const r=await api("/api/admin/products");allProducts=await r.json();renderStats(allProducts);applyFilterAndRender();}catch(e){if(e.message!=="unauthorized")el.innerHTML=`<p class="status error">${escapeHtml(e.message)}</p>`;}
+  }
 
-    return `
-      <div class="product" data-id="${p.id}">
-        ${photo}
-        <div class="info">
-          <div class="view-mode">
-            <div class="title">${escapeHtml(p.title)}${badge}</div>
-            <div class="price">${formatBRL(p.price)}</div>
-            <div class="actions">
-              <button class="ghost copy-btn" data-link="${escapeHtml(p.affiliateLink)}">Copiar link</button>
-              <a class="ghost" style="text-decoration:none;display:inline-block" href="${escapeHtml(p.affiliateLink)}" target="_blank" rel="noopener">Ver produto</a>
-              <button class="ghost edit-btn">Editar</button>
-              <button class="secondary toggle-btn" data-active="${p.active}">${toggleLabel}</button>
-            </div>
+  // AGENDA
+  function renderDateLabel() { const s=toLocalDateStr(selectedDate); document.getElementById("date-label").textContent=`${toWeekday(s)}, ${formatDateBR(s)}`; }
+  function renderSchedule() {
+    const el=document.getElementById("schedule-list");
+    if(!currentPosts.length){el.innerHTML=`<p class="empty-state">Nenhum horário.</p>`;return;}
+    el.innerHTML=currentPosts.map(p=>{
+      const cfg=SLOT_CONFIG[p.timeSlot]||{};
+      const hl=HOOK_LABELS[cfg.hook]||"—";
+      const sc=p.status||"pending";
+      const sl={pending:"Pendente",posted:"Postado",skipped:"Pulado"}[sc]||sc;
+      const po=allProducts.filter(x=>x.active).map(x=>`<option value="${x.id}" ${p.productId===x.id?"selected":""}>${escapeHtml(x.title)} — ${formatBRL(x.price)}</option>`).join("");
+      return `<div class="slot slot-${sc}" data-slot="${p.timeSlot}"><div class="slot-header"><span class="slot-time">${p.timeSlot}</span><span class="slot-status ${sc}">${sl}</span></div><div class="slot-meta"><strong>${escapeHtml(cfg.category||"—")}</strong> · ${hl}</div><label class="field-label">Produto</label><select class="slot-product"><option value="">Selecionar...</option>${po}</select><label class="field-label" style="margin-top:10px">Legenda</label><textarea class="slot-caption" placeholder="Escreva a legenda...">${escapeHtml(p.caption||"")}</textarea><div class="slot-actions"><button class="btn btn-primary btn-sm slot-copy-btn">Copiar</button><button class="btn btn-secondary btn-sm slot-save-btn">Salvar</button><button class="btn btn-secondary btn-sm slot-status-btn" data-next-status="${sc==="posted"?"pending":"posted"}">${sc==="posted"?"Desfazer":"Postado"}</button>${sc!=="skipped"?`<button class="btn btn-danger btn-sm slot-skip-btn">Pular</button>`:""}</div></div>`;
+    }).join("");
+    attachScheduleHandlers();
+  }
+  function attachScheduleHandlers() {
+    document.querySelectorAll(".slot-copy-btn").forEach(b=>b.addEventListener("click",async()=>{const p=currentPosts.find(x=>x.timeSlot===b.closest(".slot").dataset.slot);if(!p?.caption){alert("Sem legenda.");return;}try{await navigator.clipboard.writeText(p.caption);const t=b.textContent;b.textContent="Copiado!";setTimeout(()=>b.textContent=t,1500);}catch{}}));
+    document.querySelectorAll(".slot-save-btn").forEach(b=>b.addEventListener("click",async()=>{const row=b.closest(".slot");const ds=toLocalDateStr(selectedDate);const pid=row.querySelector(".slot-product").value||null;const cap=row.querySelector(".slot-caption").value;b.disabled=true;try{const r=await api("/api/admin/calendar",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({postDate:ds,timeSlot:row.dataset.slot,productId:pid?Number(pid):null,caption:cap})});const s=await r.json();const i=currentPosts.findIndex(x=>x.timeSlot===row.dataset.slot);if(i!==-1)currentPosts[i]=s;renderSchedule();}catch(e){if(e.message!=="unauthorized")alert(e.message);}finally{b.disabled=false;}}));
+    document.querySelectorAll(".slot-status-btn").forEach(b=>b.addEventListener("click",async()=>{const row=b.closest(".slot");const ds=toLocalDateStr(selectedDate);const pid=row.querySelector(".slot-product").value||null;const cap=row.querySelector(".slot-caption").value;b.disabled=true;try{const r=await api("/api/admin/calendar",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({postDate:ds,timeSlot:row.dataset.slot,productId:pid?Number(pid):null,caption:cap,status:b.dataset.nextStatus})});const s=await r.json();const i=currentPosts.findIndex(x=>x.timeSlot===row.dataset.slot);if(i!==-1)currentPosts[i]=s;renderSchedule();}catch(e){if(e.message!=="unauthorized")alert(e.message);}finally{b.disabled=false;}}));
+    document.querySelectorAll(".slot-skip-btn").forEach(b=>b.addEventListener("click",async()=>{const row=b.closest(".slot");const ds=toLocalDateStr(selectedDate);const pid=row.querySelector(".slot-product").value||null;const cap=row.querySelector(".slot-caption").value;b.disabled=true;try{const r=await api("/api/admin/calendar",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({postDate:ds,timeSlot:row.dataset.slot,productId:pid?Number(pid):null,caption:cap,status:"skipped"})});const s=await r.json();const i=currentPosts.findIndex(x=>x.timeSlot===row.dataset.slot);if(i!==-1)currentPosts[i]=s;renderSchedule();}catch(e){if(e.message!=="unauthorized")alert(e.message);}finally{b.disabled=false;}}));
+  }
+  async function loadSchedule() {
+    renderDateLabel(); const el=document.getElementById("schedule-list"); el.innerHTML=`<p class="empty-state">Carregando...</p>`;
+    try{const r=await api(`/api/admin/calendar?date=${toLocalDateStr(selectedDate)}`);currentPosts=await r.json();renderSchedule();}catch(e){if(e.message!=="unauthorized")el.innerHTML=`<p class="status error">${escapeHtml(e.message)}</p>`;}
+  }
+
+  // TEMPLATES
+  function renderTemplates() {
+    const el=document.getElementById("template-list");
+    const f=tplFilterSlot==="all"?allTemplates:allTemplates.filter(t=>t.timeSlot===tplFilterSlot);
+    if(!f.length){el.innerHTML=`<p class="empty-state">Nenhum template${tplFilterSlot!=="all"?" nesse horário":""}.</p>`;return;}
+    el.innerHTML=f.map(t=>`<div class="template-item" data-tpl-id="${t.id}"><div class="tpl-header"><span class="tpl-slot">${t.timeSlot}</span><span class="tpl-category">${escapeHtml(t.category)}</span></div><span class="tpl-hook">${HOOK_LABELS[t.hookType]||t.hookType}</span><div class="tpl-text">${escapeHtml(t.templateText)}</div><div class="tpl-actions"><button class="btn btn-ghost btn-sm tpl-copy-btn" data-text="${escapeHtml(t.templateText)}">Copiar</button><button class="btn btn-ghost btn-sm tpl-edit-toggle">Editar</button><button class="btn btn-danger btn-sm tpl-delete-btn">Excluir</button></div><div class="tpl-edit-form"><textarea class="tpl-edit-text">${escapeHtml(t.templateText)}</textarea><div style="display:flex;gap:8px"><button class="btn btn-primary btn-sm tpl-edit-save">Salvar</button><button class="btn btn-ghost btn-sm tpl-edit-cancel">Cancelar</button></div></div></div>`).join("");
+    attachTemplateHandlers();
+  }
+  function attachTemplateHandlers() {
+    document.querySelectorAll(".tpl-copy-btn").forEach(b=>b.addEventListener("click",async()=>{try{await navigator.clipboard.writeText(b.dataset.text);const t=b.textContent;b.textContent="Copiado!";setTimeout(()=>b.textContent=t,1500);}catch{}}));
+    document.querySelectorAll(".tpl-edit-toggle").forEach(b=>b.addEventListener("click",()=>{const i=b.closest(".template-item");i.querySelector(".tpl-edit-form").style.display="block";i.querySelector(".tpl-edit-text").focus();}));
+    document.querySelectorAll(".tpl-edit-cancel").forEach(b=>b.addEventListener("click",()=>b.closest(".template-item").querySelector(".tpl-edit-form").style.display="none"));
+    document.querySelectorAll(".tpl-edit-save").forEach(b=>b.addEventListener("click",async()=>{const i=b.closest(".template-item");const txt=i.querySelector(".tpl-edit-text").value.trim();if(!txt){alert("Texto vazio.");return;}b.disabled=true;try{await api(`/api/admin/templates?id=${i.dataset.tplId}`,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({templateText:txt})});await loadTemplates();}catch(e){if(e.message!=="unauthorized")alert(e.message);}finally{b.disabled=false;}}));
+    document.querySelectorAll(".tpl-delete-btn").forEach(b=>b.addEventListener("click",async()=>{if(!confirm("Excluir?"))return;b.disabled=true;try{await api(`/api/admin/templates?id=${b.closest(".template-item").dataset.tplId}`,{method:"DELETE"});await loadTemplates();}catch(e){if(e.message!=="unauthorized")alert(e.message);}finally{b.disabled=false;}}));
+  }
+  async function loadTemplates() {
+    const el=document.getElementById("template-list"); el.innerHTML=`<p class="empty-state">Carregando...</p>`;
+    try{const r=await api("/api/admin/templates");allTemplates=await r.json();renderTemplates();}catch(e){if(e.message!=="unauthorized")el.innerHTML=`<p class="status error">${escapeHtml(e.message)}</p>`;}
+  }
+  async function saveNewTemplate() {
+    const ts=document.getElementById("tpl-time").value, ht=document.getElementById("tpl-hook").value, cat=document.getElementById("tpl-category").value.trim(), txt=document.getElementById("tpl-text").value.trim();
+    const st=document.getElementById("tpl-save-status"), btn=document.getElementById("tpl-save-btn");
+    if(!cat||!txt){st.className="status error";st.textContent="Preencha categoria e texto.";return;}
+    btn.disabled=true; st.className="status info"; st.textContent="Salvando...";
+    try{await api("/api/admin/templates",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({timeSlot:ts,category:cat,hookType:ht,templateText:txt})});st.className="status ok";st.textContent="Salvo!";document.getElementById("tpl-text").value="";document.getElementById("tpl-category").value="";await loadTemplates();}catch(e){st.className="status error";st.textContent=e.message;}
+    finally{btn.disabled=false;}
+  }
+
+  // Listeners
+  document.getElementById("login-btn").addEventListener("click",tryLogin);
+  document.getElementById("password-input").addEventListener("keydown",e=>{if(e.key==="Enter")tryLogin();});
+  document.getElementById("search-input").addEventListener("input",applyFilterAndRender);
+  document.querySelectorAll(".status-tab").forEach(b=>b.addEventListener("click",()=>{statusFilter=b.dataset.status;document.querySelectorAll(".status-tab").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));applyFilterAndRender();}));
+  document.querySelectorAll(".bottom-nav button").forEach(b=>b.addEventListener("click",()=>switchView(b.dataset.view)));
+  document.querySelectorAll(".content-tab").forEach(b=>b.addEventListener("click",()=>switchContentTab(b.dataset.contentTab)));
+  document.getElementById("prev-day").addEventListener("click",()=>{selectedDate.setDate(selectedDate.getDate()-1);loadSchedule();});
+  document.getElementById("next-day").addEventListener("click",()=>{selectedDate.setDate(selectedDate.getDate()+1);loadSchedule();});
+  document.getElementById("tpl-save-btn").addEventListener("click",saveNewTemplate);
+  document.querySelectorAll(".tpl-filter").forEach(b=>b.addEventListener("click",()=>{tplFilterSlot=b.dataset.tplSlot;document.querySelectorAll(".tpl-filter").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));renderTemplates();}));
+  document.getElementById("curate-btn").addEventListener("click",async()=>{const inp=document.getElementById("url-input"),st=document.getElementById("curate-status"),btn=document.getElementById("curate-btn"),url=inp.value.trim();if(!url)return;btn.disabled=true;st.className="status info";st.textContent="Buscando na Shopee...";try{const r=await api("/api/admin/curate",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({url})});const d=await r.json();if(!r.ok){st.className="status error";st.textContent=d.error;return;}if(d.duplicate){st.className="status info";st.textContent=`Já cadastrado: ${d.title} — ${formatBRL(d.price)}`;}else{st.className="status ok";st.textContent=`Cadastrado: ${d.title} — ${formatBRL(d.price)}`;}inp.value="";loadProducts();}catch(e){if(e.message!=="unauthorized"){st.className="status error";st.textContent=e.message;}}finally{btn.disabled=false;}});
+  document.getElementById("url-input").addEventListener("keydown",e=>{if(e.key==="Enter")document.getElementById("curate-btn").click();});
+  document.getElementById("logout-btn").addEventListener("click",()=>{localStorage.removeItem("adminAuth");authHeader="";showLogin("");});
+
+  // DASHBOARD
+  async function loadDashboard() {
+    try {
+      const r = await api("/api/admin/status");
+      const s = await r.json();
+      document.getElementById("dashboard-status").style.display = "block";
+      document.getElementById("dash-stats").innerHTML = `
+        <div class="stat"><div class="num">${s.products.active}</div><div class="label">produtos ativos</div></div>
+        <div class="stat"><div class="num">${s.products.removed}</div><div class="label">removidos</div></div>
+        <div class="stat"><div class="num">${formatBRL(s.products.totalValue)}</div><div class="label">valor total</div></div>
+        <div class="stat"><div class="num">${s.schedule.nextHour}h</div><div class="label">próximo disparo</div></div>
+      `;
+      const evoColor = s.evolution.status === "open" ? "var(--success)" : "var(--error)";
+      const evoLabel = s.evolution.status === "open" ? "Conectado" : s.evolution.status === "connecting" ? "Conectando..." : "Desconectado";
+      const autoState = s.automation?.state || "ativo";
+      const autoColor = autoState === "ativo" ? "var(--success)" : autoState === "pausado" ? "#f59e0b" : "var(--error)";
+      const autoLabel = autoState === "ativo" ? "Ativo" : autoState === "pausado" ? "Pausado" : "Desligado";
+      const pausedInfo = s.automation?.pausedUntil ? ` até ${new Date(s.automation.pausedUntil).toLocaleString("pt-BR",{timeZone:"America/Sao_Paulo",day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}` : "";
+      document.getElementById("dash-details").innerHTML = `
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px">
+          <div style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--ink-secondary)">
+            <span style="width:8px;height:8px;border-radius:50%;background:${autoColor};box-shadow:0 0 6px ${autoColor}"></span>
+            Automação: <strong style="color:${autoColor}">${autoLabel}${pausedInfo}</strong>
           </div>
-          <div class="edit-mode" style="display:none">
-            <div class="edit-fields">
-              <input type="text" class="edit-title" value="${escapeHtml(p.title)}" aria-label="Editar nome do produto" />
-              <input type="number" step="0.01" min="0.01" class="edit-price" value="${p.price}" style="max-width:100px" aria-label="Editar preço" />
-            </div>
-            <div class="actions">
-              <button class="save-btn">Salvar</button>
-              <button class="ghost cancel-btn">Cancelar</button>
-            </div>
+          <div style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--ink-secondary)">
+            <span style="width:8px;height:8px;border-radius:50%;background:${evoColor};box-shadow:0 0 6px ${evoColor}"></span>
+            Evolution: <strong style="color:${evoColor}">${evoLabel}</strong> (${s.evolution.instance})
+          </div>
+          <div style="font-size:13px;color:var(--ink-secondary)">
+            Próximo: <strong>${s.schedule.nextType}</strong> às ${s.schedule.nextHour}h
           </div>
         </div>
-      </div>
-    `;
+      `;
+    } catch { document.getElementById("dashboard-status").style.display = "none"; }
   }
 
-  function applyFilterAndRender() {
-    const query = document.getElementById("search-input").value.trim().toLowerCase();
-
-    const byStatus = allProducts.filter((p) => {
-      if (statusFilter === "active") return p.active;
-      if (statusFilter === "inactive") return !p.active;
-      return true;
-    });
-    const filtered = query
-      ? byStatus.filter((p) => p.title.toLowerCase().includes(query))
-      : byStatus;
-
-    const list = document.getElementById("product-list");
-    if (!filtered.length) {
-      const emptyByStatus = {
-        active: "Nenhum achadinho ativo.",
-        inactive: "Nenhum achadinho removido.",
-        all: "Nenhum achadinho cadastrado ainda.",
-      };
-      list.innerHTML = `<p class="empty-state">${query ? "Nenhum achadinho bate com essa busca." : emptyByStatus[statusFilter]}</p>`;
-      return;
-    }
-    list.innerHTML = filtered.map(renderProductRow).join("");
-    attachRowHandlers();
-  }
-
-  function attachRowHandlers() {
-    document.querySelectorAll(".product").forEach((row) => {
-      const id = row.dataset.id;
-
-      row.querySelector(".copy-btn")?.addEventListener("click", async (e) => {
-        const btn = e.currentTarget;
-        try {
-          await navigator.clipboard.writeText(btn.dataset.link);
-          const original = btn.textContent;
-          btn.textContent = "Copiado!";
-          setTimeout(() => (btn.textContent = original), 1500);
-        } catch {
-          alert("Não consegui copiar. Link: " + btn.dataset.link);
-        }
-      });
-
-      row.querySelector(".edit-btn")?.addEventListener("click", () => {
-        row.querySelector(".view-mode").style.display = "none";
-        row.querySelector(".edit-mode").style.display = "block";
-        row.querySelector(".edit-title").focus();
-      });
-
-      row.querySelector(".cancel-btn")?.addEventListener("click", () => {
-        row.querySelector(".edit-mode").style.display = "none";
-        row.querySelector(".view-mode").style.display = "block";
-      });
-
-      row.querySelector(".save-btn")?.addEventListener("click", async (e) => {
-        const btn = e.currentTarget;
-        const title = row.querySelector(".edit-title").value.trim();
-        const price = parseFloat(row.querySelector(".edit-price").value);
-        if (!title || !(price > 0)) {
-          alert("Preencha um nome e um preço válido.");
-          return;
-        }
-        btn.disabled = true;
-        try {
-          await api(`/api/admin/products?id=${id}`, {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ title, price }),
-          });
-          await loadProducts();
-        } catch (err) {
-          if (err.message !== "unauthorized") alert("Erro ao salvar: " + err.message);
-        } finally {
-          btn.disabled = false;
-        }
-      });
-
-      row.querySelector(".toggle-btn")?.addEventListener("click", async (e) => {
-        const btn = e.currentTarget;
-        const nextActive = btn.dataset.active !== "true";
-        if (nextActive === false && !confirm("Remover esse achadinho do site?")) return;
-        btn.disabled = true;
-        try {
-          await api(`/api/admin/products?id=${id}`, {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ active: nextActive }),
-          });
-          await loadProducts();
-        } catch (err) {
-          btn.disabled = false;
-        }
-      });
-    });
-  }
-
-  async function loadProducts() {
-    const list = document.getElementById("product-list");
-    list.innerHTML = `<p class="empty-state">Carregando...</p>`;
+  // CONFIGURAÇÕES
+  async function loadConfig() {
     try {
-      const res = await api("/api/admin/products");
-      allProducts = await res.json();
-      renderStats(allProducts);
-      applyFilterAndRender();
-    } catch (err) {
-      if (err.message !== "unauthorized") {
-        list.innerHTML = `<p class="status error">Erro ao carregar: ${escapeHtml(err.message)}</p>`;
-      }
-    }
-  }
-
-  document.getElementById("login-btn").addEventListener("click", tryLogin);
-  document.getElementById("password-input").addEventListener("keydown", (e) => {
-    if (e.key === "Enter") tryLogin();
-  });
-  document.getElementById("search-input").addEventListener("input", applyFilterAndRender);
-
-  document.querySelectorAll(".status-tab").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      statusFilter = btn.dataset.status;
-      document.querySelectorAll(".status-tab").forEach((b) => b.setAttribute("aria-pressed", String(b === btn)));
-      applyFilterAndRender();
-    });
-  });
-
-  document.getElementById("curate-btn").addEventListener("click", async () => {
-    const input = document.getElementById("url-input");
-    const status = document.getElementById("curate-status");
-    const btn = document.getElementById("curate-btn");
-    const url = input.value.trim();
-    if (!url) return;
-
-    btn.disabled = true;
-    status.className = "status info";
-    status.textContent = "Buscando na Shopee, revisando título e salvando... (pode levar alguns segundos)";
-
-    try {
-      const res = await api("/api/admin/curate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        status.className = "status error";
-        status.textContent = "❌ " + data.error;
-        return;
-      }
-      if (data.duplicate) {
-        status.className = "status info";
-        status.textContent = `🔁 Esse já estava cadastrado: ${data.title} — ${formatBRL(data.price)}`;
+      const r = await api("/api/admin/config");
+      const c = await r.json();
+      // Automação
+      const enabled = c.AUTOPUBLISH_ENABLED !== "false";
+      document.getElementById("cfg-enabled").checked = enabled;
+      document.getElementById("pause-section").style.display = enabled ? "block" : "none";
+      const pausedUntil = c.AUTOPUBLISH_PAUSED_UNTIL;
+      const pauseActive = document.getElementById("pause-active");
+      if (pausedUntil) {
+        const until = new Date(pausedUntil);
+        if (Number.isFinite(until.getTime()) && until.getTime() > Date.now()) {
+          pauseActive.style.display = "block";
+          document.getElementById("pause-info").textContent = `Pausado até ${until.toLocaleString("pt-BR",{timeZone:"America/Sao_Paulo",day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}`;
+        } else {
+          pauseActive.style.display = "none";
+        }
       } else {
-        status.className = "status ok";
-        status.textContent = `✅ Cadastrado: ${data.title} — ${formatBRL(data.price)}`;
+        pauseActive.style.display = "none";
       }
-      input.value = "";
-      loadProducts();
-    } catch (err) {
-      if (err.message !== "unauthorized") {
-        status.className = "status error";
-        status.textContent = "❌ Erro: " + err.message;
-      }
-    } finally {
-      btn.disabled = false;
-    }
-  });
-  document.getElementById("url-input").addEventListener("keydown", (e) => {
-    if (e.key === "Enter") document.getElementById("curate-btn").click();
+      // Outros
+      document.getElementById("cfg-keywords").value = c.AUTOPUBLISH_KEYWORDS || "";
+      document.getElementById("cfg-min-discount").value = c.AUTOPUBLISH_MIN_DISCOUNT || 20;
+      document.getElementById("cfg-min-price").value = c.AUTOPUBLISH_MIN_PRICE || 5;
+      document.getElementById("cfg-max-price").value = c.AUTOPUBLISH_MAX_PRICE || 300;
+      document.getElementById("cfg-max-offers").value = c.AUTOPUBLISH_MAX_OFFERS || 5;
+      document.getElementById("cfg-delay").value = c.AUTOPUBLISH_SEND_DELAY || 8;
+      document.getElementById("cfg-sort").value = c.AUTOPUBLISH_SORT_TYPE || 5;
+      document.getElementById("cfg-coupon").value = c.AUTOPUBLISH_COUPON || "";
+      document.getElementById("cfg-require-niche").checked = c.AUTOPUBLISH_REQUIRE_NICHE !== "false";
+      document.getElementById("cfg-niche-terms").value = c.AUTOPUBLISH_NICHE_TERMS || "";
+      document.getElementById("cfg-block-terms").value = c.AUTOPUBLISH_BLOCK_TERMS || "";
+      document.getElementById("cfg-group-id").value = c.GROUP_WHATSAPP_ID || "";
+      document.getElementById("cfg-token").value = c.AUTOPUBLISH_TOKEN || "";
+    } catch {}
+  }
+  document.getElementById("cfg-save-btn").addEventListener("click", async () => {
+    const btn = document.getElementById("cfg-save-btn");
+    const st = document.getElementById("cfg-save-status");
+    btn.disabled = true; st.className = "status info"; st.textContent = "Salvando...";
+    try {
+      await api("/api/admin/config", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          AUTOPUBLISH_KEYWORDS: document.getElementById("cfg-keywords").value,
+          AUTOPUBLISH_MIN_DISCOUNT: document.getElementById("cfg-min-discount").value,
+          AUTOPUBLISH_MIN_PRICE: document.getElementById("cfg-min-price").value,
+          AUTOPUBLISH_MAX_PRICE: document.getElementById("cfg-max-price").value,
+          AUTOPUBLISH_MAX_OFFERS: document.getElementById("cfg-max-offers").value,
+          AUTOPUBLISH_SEND_DELAY: document.getElementById("cfg-delay").value,
+          AUTOPUBLISH_SORT_TYPE: document.getElementById("cfg-sort").value,
+          AUTOPUBLISH_COUPON: document.getElementById("cfg-coupon").value,
+          AUTOPUBLISH_REQUIRE_NICHE: document.getElementById("cfg-require-niche").checked ? "true" : "false",
+          AUTOPUBLISH_NICHE_TERMS: document.getElementById("cfg-niche-terms").value,
+          AUTOPUBLISH_BLOCK_TERMS: document.getElementById("cfg-block-terms").value,
+          GROUP_WHATSAPP_ID: document.getElementById("cfg-group-id").value,
+          AUTOPUBLISH_TOKEN: document.getElementById("cfg-token").value,
+        }),
+      });
+      st.className = "status ok"; st.textContent = "Salvo!";
+    } catch (e) { st.className = "status error"; st.textContent = e.message; }
+    finally { btn.disabled = false; }
   });
 
-  // Se já tem senha guardada nesta aba, tenta entrar direto.
-  if (authHeader) {
-    api("/api/admin/products")
-      .then(() => showApp())
-      .catch(() => {});
-  }
+  // Toggle geral on/off
+  document.getElementById("cfg-enabled").addEventListener("change", async () => {
+    const enabled = document.getElementById("cfg-enabled").checked;
+    const st = document.getElementById("cfg-save-status-auto");
+    st.className = "status info"; st.textContent = "Salvando...";
+    try {
+      await api("/api/admin/config", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          AUTOPUBLISH_ENABLED: enabled ? "true" : "false",
+          AUTOPUBLISH_PAUSED_UNTIL: enabled ? "" : "",
+        }),
+      });
+      st.className = "status ok";
+      st.textContent = enabled ? "Automação ligada!" : "Automação desligada — tudo pausado";
+      document.getElementById("pause-section").style.display = enabled ? "block" : "none";
+      document.getElementById("pause-active").style.display = "none";
+    } catch (e) { st.className = "status error"; st.textContent = e.message; }
+  });
+
+  // Pausar até amanhã
+  document.getElementById("cfg-pause-btn").addEventListener("click", async () => {
+    const st = document.getElementById("cfg-save-status-auto");
+    st.className = "status info"; st.textContent = "Pausando...";
+    // Calcula 08h de amanhã (BRT)
+    const now = new Date();
+    const brNow = new Date(now.toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
+    const tomorrow8h = new Date(brNow);
+    tomorrow8h.setDate(tomorrow8h.getDate() + 1);
+    tomorrow8h.setHours(8, 0, 0, 0);
+    const iso = tomorrow8h.toISOString();
+    try {
+      await api("/api/admin/config", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ AUTOPUBLISH_PAUSED_UNTIL: iso }),
+      });
+      st.className = "status ok";
+      st.textContent = `Pausado até ${tomorrow8h.toLocaleString("pt-BR",{timeZone:"America/Sao_Paulo",day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}`;
+      document.getElementById("pause-active").style.display = "block";
+      document.getElementById("pause-info").textContent = `Pausado até ${tomorrow8h.toLocaleString("pt-BR",{timeZone:"America/Sao_Paulo",day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}`;
+    } catch (e) { st.className = "status error"; st.textContent = e.message; }
+  });
+
+  // Cancelar pausa
+  document.getElementById("cfg-unpause-btn").addEventListener("click", async () => {
+    const st = document.getElementById("cfg-save-status-auto");
+    st.className = "status info"; st.textContent = "Cancelando pausa...";
+    try {
+      await api("/api/admin/config", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ AUTOPUBLISH_PAUSED_UNTIL: "" }),
+      });
+      st.className = "status ok"; st.textContent = "Pausa cancelada — automação rodando!";
+      document.getElementById("pause-active").style.display = "none";
+    } catch (e) { st.className = "status error"; st.textContent = e.message; }
+  });
+
+  if(authHeader){api("/api/admin/products").then(()=>showApp()).catch(()=>showLogin(""));}
 </script>
 
 </body>

@@ -7,6 +7,7 @@
 
 const { sendWhatsAppMessage } = require("../lib/evolution");
 const { curateFromUrl, CurateError, extractShopeeLink } = require("../lib/curate");
+const { getAllSettings } = require("../lib/settings");
 
 const CURATE_ERROR_MESSAGES = {
   PRODUCT_INFO_FAILED: "deu ruim pra buscar esse produto na Shopee 😭 tenta de novo em instantes?",
@@ -79,6 +80,12 @@ module.exports = async function handler(req, res) {
   // A partir daqui, sempre respondemos 200 — nunca queremos que o
   // Evolution reentregue a mesma mensagem por causa de um erro nosso.
   try {
+    const settings = await getAllSettings();
+    if (settings.AUTOPUBLISH_ENABLED === "false") {
+      res.status(200).end();
+      return;
+    }
+
     const body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
 
     if (body?.event !== "messages.upsert") {

@@ -115,6 +115,52 @@ node --env-file=.env.local scripts/seed.js
 
 Isso insere os 5 achadinhos de exemplo, caso a tabela esteja vazia.
 
+### Tabelas do painel de Conteúdo (Agenda + Templates)
+
+O painel `admin.html` tem uma aba **Conteúdo** (Agenda + Templates) que usa duas tabelas a mais. No **SQL Editor → New query**, rode o arquivo `scripts/schema-admin.sql` (ou o SQL abaixo) depois de criar a `products`:
+
+```sql
+CREATE TABLE caption_templates (
+  id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  time_slot TEXT NOT NULL,
+  category TEXT NOT NULL,
+  hook_type TEXT NOT NULL,
+  template_text TEXT NOT NULL,
+  is_active BOOLEAN NOT NULL DEFAULT TRUE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE daily_posts (
+  id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  post_date DATE NOT NULL,
+  time_slot TEXT NOT NULL,
+  product_id BIGINT REFERENCES products (id) ON DELETE SET NULL,
+  caption TEXT,
+  status TEXT NOT NULL DEFAULT 'pending',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE (post_date, time_slot)
+);
+```
+
+### Semear os templates do calendário (49 frases)
+
+A planilha **Calendário 7 dias** tem 49 copies (7 dias × 7 horários) e fica em
+`data/planilhas/calendario-7dias-ofertas-catolicas.xlsx`. Para carregá-las como
+templates no painel:
+
+```bash
+npm i --no-save xlsx
+node --env-file=.env.local scripts/seed-templates.js
+```
+
+Se a planilha estiver em outro caminho, passe como argumento:
+
+```bash
+node --env-file=.env.local scripts/seed-templates.js "caminho/arquivo.xlsx"
+```
+
+O script remove os templates antigos dos 7 horários e insere os novos, juntando **gancho + mini-CTA** no texto de cada template.
+
 ### Configurar o webhook no Evolution
 
 Na configuração de webhooks da sua instância Evolution, aponte para:
@@ -141,6 +187,90 @@ Isso sobe o site + as funções de `/api` localmente (lendo `.env.local` automat
 - **Gemini**: o modelo usado é `gemini-flash-lite-latest` (configurável via `GEMINI_MODEL`). Modelos "thinking" tipo `gemini-3.6-flash` funcionam mas demoram ~30s pra uma tarefa simples de reescrever título — o `-lite` responde em ~1-2s, então é o padrão.
 - **Supabase**: schema, insert e select confirmados funcionando de ponta a ponta.
 - **Evolution**: envio de mensagem (`sendText`) só funciona com a instância conectada a um WhatsApp real — teste isso antes de considerar o bot pronto.
+
+## Automação de publicação no grupo (auto-publish)
+
+Além do bot de curadoria (que espera você mandar um link), o projeto agora tem uma
+**automação que busca produtos sozinha** na Shopee, cadastra no site **e publica no
+seu grupo de ofertas do WhatsApp**.
+
+Fluxo (disparado por **Vercel Cron**, sem intervenção manual):
+
+```
+Vercel Cron --> /api/auto-publish --> busca na Shopee (productOfferV2 por keyword)
+      --> filtra (desconto/preço/comissão) --> cadastra no site (Supabase)
+      --> publica no grupo (Evolution API)
+```
+
+### Horários configurados
+
+O `vercel.json` agenda duas execuções por dia (fuso UTC):
+- `0 12 * * *` → 12:00 UTC (09:00 em Brasília)
+- `0 20 * * *` → 20:00 UTC (17:00 em Brasília)
+
+Para mudar os horários, ajuste os `schedule` em `vercel.json`.
+
+### Variáveis de ambiente (adicione à Vercel e ao `.env.local`)
+
+- `AUTOPUBLISH_TOKEN` — token que protege o endpoint por segurança em chamadas manuais.
+- `AUTOPUBLISH_KEYWORDS` — palavras-chave de busca, separadas por vírgula (cada uma
+  vira uma busca no `productOfferV2`).
+- `AUTOPUBLISH_MIN_DISCOUNT` — desconto mínimo em % (padrão 20).
+- `AUTOPUBLISH_MIN_PRICE` / `AUTOPUBLISH_MAX_PRICE` — faixa de preço (padrão 5–300).
+- `AUTOPUBLISH_MIN_COMMISSION` — comissão mínima em % (padrão 0).
+- `AUTOPUBLISH_MAX_OFFERS` — quantas ofertas publicar por execução (padrão 5).
+- `AUTOPUBLISH_SORT_TYPE` — ordenação (5 = comissão, 2 = vendidos, padrão 5).
+- `AUTOPUBLISH_SEND_IMAGE` — `true`/`false` para enviar imagem (padrão false).
+- `AUTOPUBLISH_SEND_DELAY` — segundos entre mensagens no grupo (padrão 8).
+- `AUTOPUBLISH_DRY_RUN` — `true` para NÃO publicar/salvar, só listar (teste).
+- `AUTOPUBLISH_HEADLINE` — `true`/`false` para gerar headline + título curto com o Gemini
+  (padrão true).
+- `AUTOPUBLISH_GROUP_FOOTER` — rodapé de marca no fim de cada oferta.
+- `GROUP_WHATSAPP_ID` — ID do grupo de ofertas (termina em `@g.us`, ex:
+  `5511999999999-1234567890@g.us`). **Obrigatório** para publicar no grupo.
+
+### Formato da oferta publicada no grupo
+
+A mensagem é montada no estilo do grupo: **headline** chamativa (Gemini), nome curto
+do produto, preço **De/Por**, link de afiliado curto e rodapé de marca. Usa a
+formatação do WhatsApp (negrito `*...*`, sublinhado `_..._`, riscado `~...~`).
+
+```
+CONFORTO COM CARÁTER DE PRAIA! 🌴
+
+🛍️ *Birkenstock Retrô Sola Grossa Confortável*
+
+~De: R$ 256,06~
+_Por:_ *R$ 40,97* ✅
+
+🛒 https://s.shopee.com.br/1gIIrrnbSZ
+
+_🛐  𝗕𝗘𝗡𝗗𝗜𝗧𝗢 𝗔𝗖𝗛𝗔𝗗𝗜𝗡𝗛𝗢  🛐_
+```
+
+> **Nota sobre o preço "De":** a API de afiliados Shopee não devolve o preço original;
+> o "De:" é uma **estimativa** calculada a partir do preço atual e do % de desconto
+> (`original = atual / (1 - desconto/100)`). Pode divergir um pouco do valor exibido
+> no anúncio, pois a taxa de desconto vem arredondada.
+
+### Testar localmente (dry run)
+
+Sem publicar nada, apenas listando as ofertas que seriam encontradas:
+
+```bash
+AUTOPUBLISH_DRY_RUN=true AUTOPUBLISH_KEYWORDS="terco catolico" node --env-file=.env.local -e "require('./lib/auto_publish').runAutoPublish().then(r=>console.log(JSON.stringify(r)))"
+```
+
+### Disparo manual
+
+Com o token configurado:
+
+```bash
+curl "https://SEU_DOMINIO/api/auto-publish?token=SEU_AUTOPUBLISH_TOKEN"
+```
+
+> Os disparos do Vercel Cron vêm com o header `x-vercel-cron: 1` e não exigem token;
+> chamadas externas precisam do `AUTOPUBLISH_TOKEN`.
 
 ## Identidade visual
 
