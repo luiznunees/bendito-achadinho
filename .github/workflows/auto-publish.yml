@@ -38,7 +38,7 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
 
@@ -73,9 +73,6 @@ jobs:
           EVOLUTION_INSTANCE_TOKEN: ${{ secrets.EVOLUTION_INSTANCE_TOKEN }}
           GROUP_WHATSAPP_ID: ${{ secrets.GROUP_WHATSAPP_ID }}
           SITE_URL: ${{ secrets.SITE_URL }}
-          AUTOPUBLISH_SEND_IMAGE: "true"
-          AUTOPUBLISH_SEND_DELAY: "5"
-          AUTOPUBLISH_MAX_OFFERS: "5"
         run: |
           if [ "${{ steps.decide.outputs.type }}" = "greeting" ]; then
             node scripts/run-auto-publish.js greeting "${{ steps.decide.outputs.hour }}"

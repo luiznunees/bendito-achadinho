@@ -818,8 +818,29 @@
 
         <div class="card">
           <h2>Horários e envio</h2>
-          <div class="stats" style="grid-template-columns:1fr 1fr">
-            <div><label class="field-label" for="cfg-delay">Atraso entre msgs (seg)</label><input type="number" id="cfg-delay" min="1" max="60" /></div>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-bottom:14px">
+            <input type="checkbox" id="cfg-send-image" style="width:18px;height:18px;accent-color:var(--accent)" />
+            <span style="font-size:14px;color:var(--ink)">Enviar foto do produto junto com a oferta</span>
+          </label>
+
+          <label class="field-label">Espaçamento das ofertas (por horário)</label>
+          <select id="cfg-spread-mode" style="margin-bottom:10px">
+            <option value="burst">Juntas — uma atrás da outra</option>
+            <option value="spread">Espaçadas — uma a cada X minutos</option>
+          </select>
+
+          <div id="cfg-burst-options">
+            <label class="field-label" for="cfg-delay">Atraso entre as mensagens (segundos)</label>
+            <input type="number" id="cfg-delay" min="0" max="120" />
+          </div>
+
+          <div id="cfg-spread-options" style="display:none">
+            <label class="field-label" for="cfg-spread-minutes">A cada quantos minutos?</label>
+            <input type="number" id="cfg-spread-minutes" min="1" max="60" />
+            <div style="font-size:12px;color:var(--muted);margin-top:6px">Ex.: a cada 10 min, as 5 ofertas levam ~40 min no total.</div>
+          </div>
+
+          <div class="stats" style="grid-template-columns:1fr 1fr;margin-top:12px">
             <div><label class="field-label" for="cfg-sort">Ordenar por</label>
               <select id="cfg-sort">
                 <option value="5">Comissão</option>
@@ -1226,6 +1247,11 @@
   }
 
   // CONFIGURAÇÕES
+  function updateSpreadOptions() {
+    const spread = document.getElementById("cfg-spread-mode").value === "spread";
+    document.getElementById("cfg-burst-options").style.display = spread ? "none" : "block";
+    document.getElementById("cfg-spread-options").style.display = spread ? "block" : "none";
+  }
   async function loadConfig() {
     try {
       const r = await api("/api/admin/config");
@@ -1248,6 +1274,10 @@
       document.getElementById("cfg-max-price").value = c.AUTOPUBLISH_MAX_PRICE || 300;
       document.getElementById("cfg-max-offers").value = c.AUTOPUBLISH_MAX_OFFERS || 5;
       document.getElementById("cfg-delay").value = c.AUTOPUBLISH_SEND_DELAY || 8;
+      document.getElementById("cfg-send-image").checked = c.AUTOPUBLISH_SEND_IMAGE !== "false";
+      document.getElementById("cfg-spread-mode").value = c.AUTOPUBLISH_SPREAD_MODE || "burst";
+      document.getElementById("cfg-spread-minutes").value = c.AUTOPUBLISH_SPREAD_MINUTES || 10;
+      updateSpreadOptions();
       document.getElementById("cfg-sort").value = c.AUTOPUBLISH_SORT_TYPE || 5;
       document.getElementById("cfg-coupon").value = c.AUTOPUBLISH_COUPON || "";
       document.getElementById("cfg-require-niche").checked = c.AUTOPUBLISH_REQUIRE_NICHE !== "false";
@@ -1272,6 +1302,9 @@
           AUTOPUBLISH_MAX_PRICE: document.getElementById("cfg-max-price").value,
           AUTOPUBLISH_MAX_OFFERS: document.getElementById("cfg-max-offers").value,
           AUTOPUBLISH_SEND_DELAY: document.getElementById("cfg-delay").value,
+          AUTOPUBLISH_SEND_IMAGE: document.getElementById("cfg-send-image").checked ? "true" : "false",
+          AUTOPUBLISH_SPREAD_MODE: document.getElementById("cfg-spread-mode").value,
+          AUTOPUBLISH_SPREAD_MINUTES: document.getElementById("cfg-spread-minutes").value,
           AUTOPUBLISH_SORT_TYPE: document.getElementById("cfg-sort").value,
           AUTOPUBLISH_COUPON: document.getElementById("cfg-coupon").value,
           AUTOPUBLISH_REQUIRE_NICHE: document.getElementById("cfg-require-niche").checked ? "true" : "false",
@@ -1341,6 +1374,7 @@
   document.getElementById("prev-day").addEventListener("click",()=>{ selectedDate.setDate(selectedDate.getDate()-1); loadSchedule(); });
   document.getElementById("next-day").addEventListener("click",()=>{ selectedDate.setDate(selectedDate.getDate()+1); loadSchedule(); });
   document.getElementById("tpl-save-btn").addEventListener("click", saveNewTemplate);
+  document.getElementById("cfg-spread-mode").addEventListener("change", updateSpreadOptions);
   document.querySelectorAll(".tpl-filter").forEach(b=>b.addEventListener("click",()=>{ tplFilterSlot=b.dataset.tplSlot; document.querySelectorAll(".tpl-filter").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); renderTemplates(); }));
   document.getElementById("curate-btn").addEventListener("click", async ()=>{
     const inp=document.getElementById("url-input"),st=document.getElementById("curate-status"),btn=document.getElementById("curate-btn"),url=inp.value.trim();
