@@ -36,30 +36,37 @@ De R$ ~[PREÇO ANTIGO]~ | Por R$ *[PREÇO]* 💰
 - 🌙 Boa noite, família! Encerrando o dia com uma última oferta. Dorme com Deus! 🕊️
 - 🌙 Boa noite! Antes de dormir, confere se ficou algum achadinho bom. Dorme com Deus! 🙏
 
-## Variáveis de ambiente (Vercel)
+## Como o gatilho funciona (IMPORTANTE)
 
-Adicionar em **Settings → Environment Variables**:
+O **agendamento roda no GitHub Actions**, não na Vercel, por dois limites do plano Free:
+
+1. **Cron da Vercel**: no plano Free só dispara **1x/dia** (o `vercel.json` tem os 9 crons, mas eles ficam inativos até um plano pago).
+2. **Duração da função**: função serverless na Free morre aos **10s** — o pipeline (busca ~30 keywords + Gemini ~25s + envio com delay) estoura.
+
+O workflow em `.github/workflows/auto-publish.yml` dispara nos horários acima, roda `scripts/run-auto-publish.js` e decidE o tipo (saudação/produtos) pela hora UTC em tempo real. O endpoint `/api/auto-publish` da Vercel **não é usado** para a automação (serve só como fallback/override manual).
+
+## Variáveis de ambiente — GitHub Actions (1x manual)
+
+Em **Settings → Secrets and variables → Actions**, criar as secrets abaixo com os MESMOS valores do `.env.local`:
 
 ```
-# Evolution API
-EVOLUTION_API_URL=https://zapbroker-evolution-api.mnfvp3.easypanel.host
-EVOLUTION_INSTANCE_NAME=teste-ca59
-EVOLUTION_INSTANCE_TOKEN=teste-ca59
-
-# Grupo de ofertas
-GROUP_WHATSAPP_ID=120363411641913555@g.us
-
-# Token de segurança
-AUTOPUBLISH_TOKEN=<gerar aleatório>
-
-# Imagem
-AUTOPUBLISH_SEND_IMAGE=true
-
-# Dry run (false em produção)
-AUTOPUBLISH_DRY_RUN=false
+SUPABASE_URL
+SUPABASE_SERVICE_ROLE_KEY
+SHOPEE_APP_ID
+SHOPEE_APP_SECRET
+GEMINI_API_KEY
+EVOLUTION_API_URL
+EVOLUTION_INSTANCE_NAME
+EVOLUTION_INSTANCE_TOKEN
+GROUP_WHATSAPP_ID
+SITE_URL
 ```
 
-## Deploy
+> ⚠️ A instância do Evolution usada nos secrets (`EVOLUTION_INSTANCE_NAME`) precisa estar **conectada** (estado `open` na Evolution API), senão o envio falha silenciosamente. Verificação: `GET /instance/connectionState/<nome>` com header `apikey`.
+
+> Os demais ajustes (`AUTOPUBLISH_*`) não são necessários: os valores padrão já vêm corretos no `lib/settings.js`.
+
+## Deploy/atualização
 
 ```bash
 git add .
@@ -67,4 +74,4 @@ git commit -m "feat: automação de publicação com saudações"
 git push
 ```
 
-A Vercel detecta o `vercel.json` e configura os crons automaticamente.
+Push em `master` dispara o workflow na hora certa (e também via `gh workflow run auto-publish.yml` para teste manual).
