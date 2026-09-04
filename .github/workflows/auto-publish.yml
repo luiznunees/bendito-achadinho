@@ -1,0 +1,65 @@
+# ============================================================
+# Publicação automática diária via GitHub Actions.
+#
+# POR QUE ISSO EXISTE:
+# O plano Free (Hobby) da Vercel limita cron a 1x por dia. O
+# agendador nativo (vercel.json > crons) não aguenta os 9 slots
+# diários. Este workflow chama o endpoint /api/auto-publish nos
+# horários corretos — o endpoint é só mais uma chamada HTTP e
+# funciona em qualquer plano.
+#
+# CONFIG (1x, manual):
+# No GitHub: Settings > Secrets and variables > Actions, crie o
+# secret `AUTOPUBLISH_TOKEN` com o MESMO valor da variável
+# AUTOPUBLISH_TOKEN configurada no Vercel.
+#
+# HORÁRIOS (UTC aqui; BRT = UTC-3):
+#   BRT 08 → UTC 11 = saudação bom dia
+#   BRT 10,12,14,16,18,20,22 → UTC 13,15,17,19,21,23,01 = produtos
+#   BRT 23 → UTC 02 = saudação boa noite
+# ============================================================
+
+name: auto-publish
+
+on:
+  schedule:
+    - cron: "0 11 * * *"   # 08:00 BRT — saudação bom dia
+    - cron: "0 13 * * *"   # 10:00 BRT — produtos
+    - cron: "0 15 * * *"   # 12:00 BRT — produtos
+    - cron: "0 17 * * *"   # 14:00 BRT — produtos
+    - cron: "0 19 * * *"   # 16:00 BRT — produtos
+    - cron: "0 21 * * *"   # 18:00 BRT — produtos
+    - cron: "0 23 * * *"   # 20:00 BRT — produtos
+    - cron: "0 1 * * *"    # 22:00 BRT — produtos
+    - cron: "0 2 * * *"    # 23:00 BRT — saudação boa noite
+  workflow_dispatch: {}
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Descobrir tipo pelo horário UTC
+        id: decide
+        run: |
+          H=$(date -u +%H)
+          if [ "$H" = "11" ]; then TYPE=greeting; HOUR=8
+          elif [ "$H" = "02" ]; then TYPE=greeting; HOUR=23
+          else TYPE=products; HOUR=
+          fi
+          echo "type=$TYPE" >> "$GITHUB_OUTPUT"
+          echo "hour=$HOUR" >> "$GITHUB_OUTPUT"
+          echo "Disparo UTC=$H -> type=$TYPE hour=$HOUR"
+
+      - name: Chamar API
+        run: |
+          if [ "${{ steps.decide.outputs.type }}" = "greeting" ]; then
+            curl -sf -X GET \
+              "https://benditoachadinho.vercel.app/api/auto-publish?type=greeting&hour=${{ steps.decide.outputs.hour }}" \
+              -H "x-autopublish-token: ${{ secrets.AUTOPUBLISH_TOKEN }}"
+          else
+            curl -sf -X GET \
+              "https://benditoachadinho.vercel.app/api/auto-publish?type=products" \
+              -H "x-autopublish-token: ${{ secrets.AUTOPUBLISH_TOKEN }}"
+          fi
+          echo "OK<${{ steps.decide.outputs.type }}>"
