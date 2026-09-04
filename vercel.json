@@ -1,4 +1,5 @@
 {
+  "rewrites": [{ "source": "/admin", "destination": "/admin.html" }],
   "crons": [
     { "path": "/api/auto-publish?type=greeting&hour=8",  "schedule": "0 11 * * *" },
     { "path": "/api/auto-publish?type=products",         "schedule": "0 13 * * *" },
