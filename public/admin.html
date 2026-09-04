@@ -328,6 +328,19 @@
 
   /* ========== Timeline de hoje ========== */
   .timeline { position: relative; padding-left: 0; }
+
+  .dispatch-grid { display: flex; flex-wrap: wrap; gap: 6px; }
+  .dg-item { position: relative; padding: 4px 6px 3px; border-radius: 8px; background: var(--bg); font-size: 11px; font-weight: 600; color: var(--muted); display: inline-flex; flex-direction: column; align-items: center; gap: 3px; min-width: 40px; cursor: default; }
+  .dg-item .dg-time { letter-spacing: .2px; }
+  .dg-item .dg-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--muted); }
+  .dg-item.done { color: var(--success); background: rgba(16,185,129,.08); }
+  .dg-item.done .dg-dot { background: var(--success); box-shadow: 0 0 6px rgba(16,185,129,.6); }
+  .dg-item.fail { color: var(--error); background: rgba(239,68,68,.08); }
+  .dg-item.fail .dg-dot { background: var(--error); }
+  .dg-item.pending .dg-dot { background: var(--muted); }
+  .dg-item.next { color: var(--accent); background: rgba(124,58,237,.10); outline: 1px solid var(--accent); }
+  .dg-item.next .dg-dot { background: var(--accent); box-shadow: 0 0 8px var(--accent-glow); animation: pulse 1.6s ease-in-out infinite; }
+
   .tl-item {
     position: relative;
     display: flex;
@@ -664,7 +677,8 @@
 
         <div class="section-title"><span>Agenda de hoje</span><span class="kicker" style="margin:0" id="slots-count"></span></div>
         <div class="card" style="padding-top:8px">
-          <div class="timeline" id="today-timeline"></div>
+          <div style="height:6px;background:var(--bg);border-radius:99px;overflow:hidden;margin-bottom:14px"><div id="today-progress" style="height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--success));transition:width .4s"></div></div>
+          <div class="dispatch-grid" id="today-timeline"></div>
         </div>
 
         <div class="section-title"><span>Últimas execuções</span></div>
@@ -822,21 +836,33 @@
             <span style="font-size:14px;color:var(--ink)">Enviar foto do produto junto com a oferta</span>
           </label>
 
-          <label class="field-label">Espaçamento das ofertas (por horário)</label>
-          <select id="cfg-spread-mode" style="margin-bottom:10px">
-            <option value="burst">Juntas — uma atrás da outra</option>
-            <option value="spread">Espaçadas — uma a cada X minutos</option>
+          <label class="field-label">Como espaçar as ofertas? (1 oferta por disparo)</label>
+          <select id="cfg-spacing-mode" style="margin-bottom:12px">
+            <option value="interval">A cada X minutos</option>
+            <option value="daily_target">Meta de N produtos por dia (calcula o intervalo)</option>
           </select>
 
-          <div id="cfg-burst-options">
-            <label class="field-label" for="cfg-delay">Atraso entre as mensagens (segundos)</label>
-            <input type="number" id="cfg-delay" min="0" max="120" />
+          <div class="row">
+            <div>
+              <label class="field-label" for="cfg-start-time">Começa às</label>
+              <input type="time" id="cfg-start-time" />
+            </div>
+            <div>
+              <label class="field-label" for="cfg-end-time">Termina às</label>
+              <input type="time" id="cfg-end-time" />
+            </div>
           </div>
 
-          <div id="cfg-spread-options" style="display:none">
-            <label class="field-label" for="cfg-spread-minutes">A cada quantos minutos?</label>
-            <input type="number" id="cfg-spread-minutes" min="1" max="60" />
-            <div style="font-size:12px;color:var(--muted);margin-top:6px">Ex.: a cada 10 min, as 5 ofertas levam ~40 min no total.</div>
+          <div id="cfg-interval-options">
+            <label class="field-label" for="cfg-interval">A cada quantos minutos?</label>
+            <input type="number" id="cfg-interval" min="5" max="240" />
+            <div style="font-size:12px;color:var(--muted);margin-top:6px">Ex.: a cada 15 min das 08:00 às 23:00 = 61 disparos (61 ofertas por dia).</div>
+          </div>
+
+          <div id="cfg-target-options" style="display:none">
+            <label class="field-label" for="cfg-daily-target">Quantas ofertas enviar por dia?</label>
+            <input type="number" id="cfg-daily-target" min="1" max="200" />
+            <div style="font-size:12px;color:var(--muted);margin-top:6px" id="cfg-target-preview">—</div>
           </div>
 
           <div class="stats" style="grid-template-columns:1fr 1fr;margin-top:12px">
@@ -1089,35 +1115,20 @@
       </div>
     `;
 
-    // Agenda de hoje (timeline)
-    document.getElementById("slots-count").textContent =
-      `${s.todayStats.sentRuns} enviado${s.todayStats.sentRuns===1?"":"s"} hoje`;
+    // Agenda de hoje (grade de disparos espaçados)
+    const offersSent = s.todayStats.published;
+    const target = s.todayStats.target || (s.spacing && s.spacing.numDispatches) || null;
+    document.getElementById("slots-count").textContent = target
+      ? `${offersSent} de ${target} ofertas hoje`
+      : `${offersSent} ofertas hoje`;
+    const prog = document.getElementById("today-progress");
+    if (prog) prog.style.width = `${target ? Math.min(100, (offersSent / target) * 100) : offersSent ? 100 : 0}%`;
     const tl = document.getElementById("today-timeline");
     tl.innerHTML = s.schedule.slots.map(sl=>{
       const meta = SLOT_STATUS_META[sl.status] || { cls:"neutral", label:sl.statusLabel };
-      const cls = sl.isNext ? "next" : sl.status==="sent" ? "done" : (sl.status==="error"||sl.status==="unregistered") ? "fail" : (sl.status==="no_offers"||sl.status==="disabled"||sl.status==="skipped") ? "pending" : "pending";
-      let detail;
-      if (sl.isNext) detail = "próximo disparo";
-      else if (sl.log) {
-        const bits=[];
-        if (sl.log.published) bits.push(`${fmtSuffix(sl.log.published,"oferta")} enviada${sl.log.published>1?"s":""}`);
-        if (sl.log.saved) bits.push(`${sl.log.saved} cadastrado${sl.log.saved>1?"s":""} no site`);
-        if (sl.log.errors) bits.push(`${sl.log.errors} erro${sl.log.errors>1?"s":""}`);
-        detail = bits.length?bits.join(" · "):(sl.log.detail||sl.statusLabel);
-      } else if (sl.status==="scheduled") detail = "agendado";
-      else if (sl.status==="unregistered") detail = "horário passou sem registro de execução";
-      else detail = sl.statusLabel;
-      return `<div class="tl-item ${cls}">
-        <span class="tl-rail"></span><span class="tl-dot"></span>
-        <div class="tl-time">${sl.at}</div>
-        <div class="tl-main">
-          <div class="tl-top">
-            <span class="tl-label"><span class="ico">${sl.emoji}</span>${sl.label}</span>
-            ${sl.isNext?`<span class="next-flag">Próximo</span>`:statusChip(sl.status)}
-          </div>
-          <div class="tl-detail">${escapeHtml(detail)}${sl.log?` <strong>· ${fmtClock(new Date(sl.log.time))}</strong>`:""}</div>
-        </div>
-      </div>`;
+      const cls = sl.isNext ? "next" : sl.status==="sent" ? "done" : (sl.status==="error"||sl.status==="unregistered") ? "fail" : "pending";
+      const label = sl.log ? `${sl.at} · ${sl.log.published} enviada${sl.log.published>1?"s":""}` : `${sl.at} · ${meta.label}${sl.isNext?" · próximo":""}`;
+      return `<span class="dg-item ${cls}" title="${escapeHtml(label)}"><span class="dg-time">${sl.at}</span><span class="dg-dot"></span></span>`;
     }).join("");
 
     // Últimas execuções
@@ -1246,10 +1257,27 @@
   }
 
   // CONFIGURAÇÕES
-  function updateSpreadOptions() {
-    const spread = document.getElementById("cfg-spread-mode").value === "spread";
-    document.getElementById("cfg-burst-options").style.display = spread ? "none" : "block";
-    document.getElementById("cfg-spread-options").style.display = spread ? "block" : "none";
+  function updateSpacingPreview() {
+    const mode = document.getElementById("cfg-spacing-mode").value;
+    document.getElementById("cfg-interval-options").style.display = mode === "interval" ? "block" : "none";
+    document.getElementById("cfg-target-options").style.display = mode === "daily_target" ? "block" : "none";
+    if (mode === "interval") {
+      const iv = Math.max(5, Number(document.getElementById("cfg-interval").value) || 15);
+      const [h0, m0] = (document.getElementById("cfg-start-time").value || "08:00").split(":").map(Number);
+      const [h1, m1] = (document.getElementById("cfg-end-time").value || "23:00").split(":").map(Number);
+      const span = (h1 * 60 + m1) - (h0 * 60 + m0);
+      const count = span > 0 ? Math.floor(span / iv) + 1 : 1;
+      document.getElementById("cfg-target-preview").textContent = `${count} disparos (1 oferta cada) por dia.`;
+    } else {
+      const target = Math.max(1, Number(document.getElementById("cfg-daily-target").value) || 15);
+      const [h0, m0] = (document.getElementById("cfg-start-time").value || "08:00").split(":").map(Number);
+      const [h1, m1] = (document.getElementById("cfg-end-time").value || "23:00").split(":").map(Number);
+      const span = (h1 * 60 + m1) - (h0 * 60 + m0);
+      const raw = span > 0 && target > 1 ? span / (target - 1) : 60;
+      const iv = Math.max(5, Math.round(raw / 5) * 5);
+      document.getElementById("cfg-target-preview").textContent =
+        `${target} ofertas por dia → ~1 a cada ${iv} min (de ${h0}:${String(m0).padStart(2,"0")} até ${h1}:${String(m1).padStart(2,"0")}).`;
+    }
   }
   async function loadConfig() {
     try {
@@ -1272,11 +1300,13 @@
       document.getElementById("cfg-min-price").value = c.AUTOPUBLISH_MIN_PRICE || 5;
       document.getElementById("cfg-max-price").value = c.AUTOPUBLISH_MAX_PRICE || 300;
       document.getElementById("cfg-max-offers").value = c.AUTOPUBLISH_MAX_OFFERS || 5;
-      document.getElementById("cfg-delay").value = c.AUTOPUBLISH_SEND_DELAY || 8;
       document.getElementById("cfg-send-image").checked = c.AUTOPUBLISH_SEND_IMAGE !== "false";
-      document.getElementById("cfg-spread-mode").value = c.AUTOPUBLISH_SPREAD_MODE || "burst";
-      document.getElementById("cfg-spread-minutes").value = c.AUTOPUBLISH_SPREAD_MINUTES || 10;
-      updateSpreadOptions();
+      document.getElementById("cfg-spacing-mode").value = c.AUTOPUBLISH_SPACING_MODE || "interval";
+      document.getElementById("cfg-start-time").value = c.AUTOPUBLISH_START_TIME || "08:00";
+      document.getElementById("cfg-end-time").value = c.AUTOPUBLISH_END_TIME || "23:00";
+      document.getElementById("cfg-interval").value = c.AUTOPUBLISH_INTERVAL_MINUTES || 15;
+      document.getElementById("cfg-daily-target").value = c.AUTOPUBLISH_DAILY_TARGET || 15;
+      updateSpacingPreview();
       document.getElementById("cfg-sort").value = c.AUTOPUBLISH_SORT_TYPE || 5;
       document.getElementById("cfg-coupon").value = c.AUTOPUBLISH_COUPON || "";
       document.getElementById("cfg-require-niche").checked = c.AUTOPUBLISH_REQUIRE_NICHE !== "false";
@@ -1300,10 +1330,12 @@
           AUTOPUBLISH_MIN_PRICE: document.getElementById("cfg-min-price").value,
           AUTOPUBLISH_MAX_PRICE: document.getElementById("cfg-max-price").value,
           AUTOPUBLISH_MAX_OFFERS: document.getElementById("cfg-max-offers").value,
-          AUTOPUBLISH_SEND_DELAY: document.getElementById("cfg-delay").value,
           AUTOPUBLISH_SEND_IMAGE: document.getElementById("cfg-send-image").checked ? "true" : "false",
-          AUTOPUBLISH_SPREAD_MODE: document.getElementById("cfg-spread-mode").value,
-          AUTOPUBLISH_SPREAD_MINUTES: document.getElementById("cfg-spread-minutes").value,
+          AUTOPUBLISH_SPACING_MODE: document.getElementById("cfg-spacing-mode").value,
+          AUTOPUBLISH_START_TIME: document.getElementById("cfg-start-time").value,
+          AUTOPUBLISH_END_TIME: document.getElementById("cfg-end-time").value,
+          AUTOPUBLISH_INTERVAL_MINUTES: document.getElementById("cfg-interval").value,
+          AUTOPUBLISH_DAILY_TARGET: document.getElementById("cfg-daily-target").value,
           AUTOPUBLISH_SORT_TYPE: document.getElementById("cfg-sort").value,
           AUTOPUBLISH_COUPON: document.getElementById("cfg-coupon").value,
           AUTOPUBLISH_REQUIRE_NICHE: document.getElementById("cfg-require-niche").checked ? "true" : "false",
@@ -1373,7 +1405,9 @@
   document.getElementById("prev-day").addEventListener("click",()=>{ selectedDate.setDate(selectedDate.getDate()-1); loadSchedule(); });
   document.getElementById("next-day").addEventListener("click",()=>{ selectedDate.setDate(selectedDate.getDate()+1); loadSchedule(); });
   document.getElementById("tpl-save-btn").addEventListener("click", saveNewTemplate);
-  document.getElementById("cfg-spread-mode").addEventListener("change", updateSpreadOptions);
+  document.getElementById("cfg-spacing-mode").addEventListener("change", updateSpacingPreview);
+  ["cfg-interval", "cfg-daily-target", "cfg-start-time", "cfg-end-time"].forEach(id =>
+    document.getElementById(id).addEventListener("input", updateSpacingPreview));
   document.querySelectorAll(".tpl-filter").forEach(b=>b.addEventListener("click",()=>{ tplFilterSlot=b.dataset.tplSlot; document.querySelectorAll(".tpl-filter").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); renderTemplates(); }));
   document.getElementById("curate-btn").addEventListener("click", async ()=>{
     const inp=document.getElementById("url-input"),st=document.getElementById("curate-status"),btn=document.getElementById("curate-btn"),url=inp.value.trim();

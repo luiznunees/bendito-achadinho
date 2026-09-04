@@ -2,20 +2,7 @@ const { requireAdminAuth } = require("../../lib/adminAuth");
 const { getAllProducts } = require("../../lib/db");
 const { getAllSettings } = require("../../lib/settings");
 const { getLogsOfDay, getRecentLogs } = require("../../lib/publish_log");
-
-// Cronograma real da automação (disparada pelo GitHub Actions) em horário
-// de Brasília. É a fonte da verdade usada pelo dashboard.
-const SCHEDULE = [
-  { hour: 8,  type: "greeting", label: "Bom dia",  emoji: "☀️" },
-  { hour: 10, type: "products", label: "Produtos", emoji: "🛍️" },
-  { hour: 12, type: "products", label: "Produtos", emoji: "🛍️" },
-  { hour: 14, type: "products", label: "Produtos", emoji: "🛍️" },
-  { hour: 16, type: "products", label: "Produtos", emoji: "🛍️" },
-  { hour: 18, type: "products", label: "Produtos", emoji: "🛍️" },
-  { hour: 20, type: "products", label: "Produtos", emoji: "🛍️" },
-  { hour: 22, type: "products", label: "Produtos", emoji: "🛍️" },
-  { hour: 23, type: "greeting", label: "Boa noite", emoji: "🌙" },
-];
+const { computeDispatchTimes, minsToHHMM } = require("../../lib/schedule");
 
 // Estados exibidos no dashboard para cada status registrado no log.
 const STATUS_LABEL = {
@@ -27,7 +14,22 @@ const STATUS_LABEL = {
   skipped: "Pulado",
 };
 
+const GREETING_SLOTS = [
+  { hour: 8, type: "greeting", label: "Bom dia", emoji: "☀️" },
+  { hour: 23, type: "greeting", label: "Boa noite", emoji: "🌙" },
+];
+
 function pad(n) { return String(n).padStart(2, "0"); }
+
+// Lê os valores de uma config (settings + env) e vira um getter simples,
+// para o computeDispatchTimes funcionar igual ao runner.
+function settingsGetter(settings) {
+  return (name, fallback) => {
+    const v = settings[name];
+    if (v === undefined || v === null || String(v).trim() === "") return fallback;
+    return v;
+  };
+}
 
 module.exports = async function handler(req, res) {
   if (!requireAdminAuth(req, res)) return;
@@ -40,7 +42,8 @@ module.exports = async function handler(req, res) {
     const todayBR = `${br.getFullYear()}-${pad(br.getMonth() + 1)}-${pad(br.getDate())}`;
     const brHour = br.getHours();
     const brMinute = br.getMinutes();
-    const secondsNow = brHour * 3600 + brMinute * 60 + br.getSeconds();
+    const minsNow = brHour * 60 + brMinute;
+    const secondsNow = minsNow * 60 + br.getSeconds();
 
     // ---- Produtos ----
     const products = await getAllProducts();
@@ -74,6 +77,13 @@ module.exports = async function handler(req, res) {
       if (Number.isFinite(until.getTime()) && until.getTime() > Date.now()) state = "pausado";
     }
 
+    // ---- Configuração de espaçamento (fonte da verdade do dashboard) ----
+    const dispatch = computeDispatchTimes(settingsGetter(settings));
+    const dailyTarget =
+      dispatch.spacingMode === "daily_target"
+        ? Math.max(1, Math.round(Number(settings.AUTOPUBLISH_DAILY_TARGET || 1) || 1))
+        : null;
+
     // ---- Logs de hoje + últimos ----
     let todayLogs = [];
     let recentLogs = [];
@@ -84,34 +94,51 @@ module.exports = async function handler(req, res) {
       console.warn("admin/status: tabela auto_publish_log indisponível:", err.message);
     }
     const lastLogBySlot = new Map();
-    for (const log of todayLogs) lastLogBySlot.set(`${log.type}:${log.slot_hour}`, log);
+    for (const log of todayLogs) {
+      // Saudação casa pelo horário cheio (slot_hour); produto casa pelo
+      // minuto real da execução em BRT (UTC-3 fixo), próximo ao do disparo.
+      if (log.type === "greeting") {
+        lastLogBySlot.set(`greeting:${log.slot_hour}`, log);
+      } else {
+        const utcMin = new Date(log.created_at).getUTCHours() * 60 + new Date(log.created_at).getUTCMinutes();
+        const brtMin = (utcMin - 180 + 1440) % 1440;
+        lastLogBySlot.set(`products:${brtMin}`, log);
+      }
+    }
 
-    // ---- Grade de hoje ----
-    let nextSlot = null;
-    const slots = SCHEDULE.map((s) => {
-      const log = lastLogBySlot.get(`${s.type}:${s.hour}`) || null;
-      const atSeconds = s.hour * 3600;
-      const at = `${pad(s.hour)}:00`;
+    const logAt = (type, hour, minutes) => {
+      if (type === "greeting") return lastLogBySlot.get(`greeting:${hour}`) || null;
+      const want = hour * 60 + minutes;
+      // tolerância de ±3 min (o cron pode disparar um pouco depois do horário)
+      for (const [key, log] of lastLogBySlot.entries()) {
+        if (!key.startsWith("products:")) continue;
+        const t = Number(key.split(":")[1]);
+        if (Math.abs(t - want) <= 3) return log;
+      }
+      return null;
+    };
+
+    const buildSlot = (type, hour, minutes, label, emoji) => {
+      const log = logAt(type, hour, minutes);
+      const atSeconds = (hour * 60 + minutes) * 60;
 
       let status;
       if (log) status = log.status;
       else if (atSeconds <= secondsNow) status = "unregistered";
       else status = "scheduled";
 
-      const isNext = !log && !nextSlot && atSeconds > secondsNow;
-      if (isNext) nextSlot = { hour: s.hour, type: s.type, label: s.label, emoji: s.emoji };
-
       return {
-        hour: s.hour,
-        at,
-        type: s.type,
-        label: s.label,
-        emoji: s.emoji,
+        at: minsToHHMM(minutes),
+        hour,
+        minute: minutes,
+        type,
+        label,
+        emoji,
         status,
         statusLabel:
           log ? (STATUS_LABEL[log.status] || log.status) :
           status === "unregistered" ? "Não registrado" : "Agendado",
-        isNext,
+        isNext: false,
         isPast: atSeconds <= secondsNow,
         log: log
           ? {
@@ -124,17 +151,33 @@ module.exports = async function handler(req, res) {
             }
           : null,
       };
+    };
+
+    // ---- Grade de hoje: saudações + disparos espaçados ----
+    const greetingSlots = GREETING_SLOTS.map((g) =>
+      buildSlot(g.type, g.hour, 0, g.label, g.emoji)
+    );
+    const productSlots = dispatch.times.map((minutes) =>
+      buildSlot("products", Math.floor(minutes / 60), minutes % 60, "Oferta", "🛍️")
+    );
+    const allSlots = [...greetingSlots, ...productSlots].sort((a, b) => {
+      const am = a.hour * 60 + a.minute;
+      const bm = b.hour * 60 + b.minute;
+      return am - bm;
     });
 
     // ---- Próximo disparo (hoje; se passou tudo, amanhã 08h) ----
-    let nextAtSeconds, nextRunInfo;
+    let nextSlot = allSlots.find(
+      (s) => !s.log && (s.hour * 60 + s.minute) * 60 > secondsNow
+    );
+    let nextRunInfo, nextAtSeconds;
     if (nextSlot) {
-      nextAtSeconds = nextSlot.hour * 3600;
-      nextRunInfo = { hour: nextSlot.hour, at: `${pad(nextSlot.hour)}:00`, type: nextSlot.type, label: nextSlot.label, emoji: nextSlot.emoji };
+      nextSlot.isNext = true;
+      nextAtSeconds = (nextSlot.hour * 60 + nextSlot.minute) * 60;
+      nextRunInfo = { at: nextSlot.at, minute: nextSlot.minute, type: nextSlot.type, label: nextSlot.label, emoji: nextSlot.emoji };
     } else {
-      // Todos os slots de hoje passaram -> próximo é amanhã 08h (Bom dia)
-      nextAtSeconds = 8 * 3600 + 24 * 3600;
-      nextRunInfo = { hour: 8, at: "08:00", type: "greeting", label: "Bom dia", emoji: "☀️", tomorrow: true };
+      nextAtSeconds = (8 * 60) * 60 + 24 * 3600;
+      nextRunInfo = { at: "08:00", minute: 0, type: "greeting", label: "Bom dia", emoji: "☀️", tomorrow: true };
     }
     const countdownSeconds = Math.max(0, nextAtSeconds - secondsNow);
 
@@ -151,8 +194,8 @@ module.exports = async function handler(req, res) {
       { runs: 0, published: 0, saved: 0, errors: 0, sentRuns: 0 }
     );
 
-    const bomDia = slots.find((s) => s.hour === 8);
-    const boaNoite = slots.find((s) => s.hour === 23);
+    const bomDia = allSlots.find((s) => s.type === "greeting" && s.hour === 8);
+    const boaNoite = allSlots.find((s) => s.type === "greeting" && s.hour === 23);
 
     res.status(200).json({
       now: now.toISOString(),
@@ -160,17 +203,25 @@ module.exports = async function handler(req, res) {
       today: todayBR,
       brHour,
       brMinute,
+      spacing: {
+        mode: dispatch.spacingMode,
+        intervalMinutes: dispatch.interval,
+        start: dispatch.start,
+        end: dispatch.end,
+        dailyTarget,
+        numDispatches: dispatch.numDispatches,
+      },
       automation: { enabled, pausedUntil: pausedUntil || null, state },
       evolution: { instance: process.env.EVOLUTION_INSTANCE_NAME || "?", status: evolutionStatus },
       products: { total: products.length, active: active.length, removed: products.length - active.length, totalValue },
-      schedule: { slots },
+      schedule: { slots: allSlots },
       nextRun: { ...nextRunInfo, countdownSeconds },
       greetings: {
         bomDia: { at: "08:00", status: bomDia.status, statusLabel: bomDia.statusLabel, sent: bomDia.status === "sent" },
         boaNoite: { at: "23:00", status: boaNoite.status, statusLabel: boaNoite.statusLabel, sent: boaNoite.status === "sent" },
       },
-      todayStats: dayStats,
-      slotsToday: { scheduled: slots.filter((s) => s.status === "scheduled").length, done: slots.filter((s) => s.status !== "scheduled" && s.status !== "unregistered").length },
+      todayStats: { ...dayStats, target: dailyTarget },
+      slotsToday: { scheduled: allSlots.filter((s) => s.status === "scheduled").length, done: allSlots.filter((s) => s.status !== "scheduled" && s.status !== "unregistered").length },
       recentLogs: recentLogs.map((l) => ({
         id: l.id,
         runDate: l.run_date,

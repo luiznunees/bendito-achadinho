@@ -3,29 +3,94 @@
 //
 // POR QUE EXISTE:
 // O plano Free (Hobby) da Vercel limita funções serverless a 10s
-// de execução — o pipeline (busca ~30 keywords + Gemini + envio
-// com delay) estoura esse limite. Este script roda a MESMA lógica
+// de execução — o pipeline (busca ~30 keywords + Gemini + envio)
+// estoura esse limite. Este script roda a MESMA lógica
 // (lib/auto_publish.js) em qualquer ambiente sem limite de tempo:
 // GitHub Actions, cron de VPS, laptop, etc.
 //
 // Uso:
-//   node scripts/run-auto-publish.js products
-//   node scripts/run-auto-publish.js greeting 8
+//   node scripts/run-auto-publish.js auto        (modo padrão do cron)
+//   node scripts/run-auto-publish.js products    (força uma execução agora)
+//   node scripts/run-auto-publish.js greeting 8  (força saudação)
 //   node scripts/run-auto-publish.js greeting 23
 //
+// O modo "auto" decide sozinho o que fazer neste minuto com base nas
+// configurações do painel (tabela settings):
+//   - 08:00 BRT            -> bom dia
+//   - 23:00 BRT            -> boa noite
+//   - horário de disparo   -> publica 1 oferta espaçada
+//   - qualquer outro       -> não faz nada (cron roda a cada 5 min)
+//
 // Precisa das variáveis de ambiente (supabase, shopee, gemini,
-// evolution, group). Ex.: node --env-file=.env.local scripts/run-auto-publish.js products
+// evolution, group). Ex.: node --env-file=.env.local scripts/run-auto-publish.js auto
 // ============================================================
 
-const { runAutoPublish, runGreeting } = require("../lib/auto_publish");
+const { runAutoPublish, runGreeting, loadPipelineSettings, cfg } = require("../lib/auto_publish");
+const { computeDispatchTimes, isDispatchTime, nowBRTMinutes, todayBRT, minsToHHMM } = require("../lib/schedule");
+const { getLogsOfDay } = require("../lib/publish_log");
 
-const type = (process.argv[2] || "products").toLowerCase();
+const type = (process.argv[2] || "auto").toLowerCase();
+
+// Quantas ofertas já foram publicadas hoje (para respeitar a meta diária).
+async function sentTodayCount() {
+  try {
+    const logs = await getLogsOfDay(todayBRT());
+    return logs
+      .filter((l) => l.type === "products" && l.status === "sent")
+      .reduce((s, l) => s + (l.published_count || 0), 0);
+  } catch {
+    return 0;
+  }
+}
+
+async function runAuto() {
+  await loadPipelineSettings();
+
+  const enabled = cfg("AUTOPUBLISH_ENABLED", "true").toLowerCase() !== "false";
+  const now = nowBRTMinutes();
+
+  // Saudações têm prioridade nos minutos exatos (08:00 e 23:00).
+  if (now === 8 * 60) return await runGreeting(8);
+  if (now === 23 * 60) return await runGreeting(23);
+
+  if (!enabled) {
+    console.log("auto: automação desligada no painel.");
+    return { action: "disabled" };
+  }
+
+  const dispatch = computeDispatchTimes(cfg);
+  if (!isDispatchTime(dispatch, now)) {
+    console.log(`auto: ${minsToHHMM(now)} BRT fora do agendamento (próximo às ${minsToHHMM(dispatch.times.find((t) => t > now) || dispatch.times[0] || 0)}).`);
+    return { action: "idle" };
+  }
+
+  // Se o modo for meta diária, respeita o limite de ofertas no dia.
+  if (dispatch.spacingMode === "daily_target") {
+    const target = Math.max(1, Math.round(Number(cfg("AUTOPUBLISH_DAILY_TARGET", "15")) || 15));
+    const sent = await sentTodayCount();
+    if (sent >= target) {
+      console.log(`auto: meta diária atingida (${sent}/${target}).`);
+      return { action: "target_reached", sent };
+    }
+  }
+
+  const result = await runAutoPublish({ maxOffers: 1 });
+  console.log("auto: oferta espaçada", JSON.stringify(result));
+  return { action: "published", ...result };
+}
 
 async function main() {
   if (type === "greeting") {
     const hour = parseInt(process.argv[3] || "8", 10);
     const result = await runGreeting(hour);
     console.log("greeting:", JSON.stringify(result));
+    return;
+  }
+
+  if (type === "auto") {
+    const result = await runAuto();
+    console.log("auto:", JSON.stringify(result));
+    if (result.disabled) process.exitCode = 1;
     return;
   }
 
