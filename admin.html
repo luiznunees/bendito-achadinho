@@ -15,7 +15,7 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&family=JetBrains+Mono:wght@600;700&display=swap" rel="stylesheet" />
 
 <style>
   :root {
@@ -42,6 +42,7 @@
     --radius-full: 9999px;
     --font-display: "Plus Jakarta Sans", "Segoe UI", sans-serif;
     --font-body: "DM Sans", "Segoe UI", sans-serif;
+    --font-mono: "JetBrains Mono", "SF Mono", monospace;
     --safe-bottom: env(safe-area-inset-bottom, 0px);
   }
   * { box-sizing: border-box; }
@@ -79,46 +80,72 @@
     position: sticky;
     top: 0;
     z-index: 20;
-    background: rgba(6,8,13,0.8);
+    background: rgba(6,8,13,0.82);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border-bottom: 1px solid var(--glass-border);
-    padding: 14px 16px;
+    padding: 13px 16px;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 10px;
   }
-  .app-header h1 {
+  .app-header .brand {
     font-family: var(--font-display);
     font-weight: 800;
-    font-size: 17px;
+    font-size: 16px;
     color: var(--ink);
-    margin: 0;
-    letter-spacing: -0.3px;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 9px;
+    letter-spacing: -0.3px;
+    min-width: 0;
   }
-  .app-header h1::before {
-    content: "";
-    width: 8px;
-    height: 8px;
+  .app-header .brand .logo-dot {
+    width: 9px;
+    height: 9px;
     border-radius: 50%;
     background: var(--accent);
     box-shadow: 0 0 10px var(--accent-glow), 0 0 20px var(--accent-glow);
+    animation: pulse 2s ease-in-out infinite;
+    flex-shrink: 0;
   }
-  .app-header a {
+  .header-clock {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--ink-secondary);
+    letter-spacing: 1px;
+    white-space: nowrap;
+  }
+  .header-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+  #logout-btn {
+    display: none;
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    color: var(--muted);
+    border-radius: var(--radius-full);
+    padding: 6px 12px;
+    font-family: var(--font-body);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  #logout-btn:hover { color: var(--error); border-color: rgba(239,68,68,0.4); background: var(--error-dim); }
+  .site-link {
     font-size: 13px;
     font-weight: 600;
     color: var(--accent);
     text-decoration: none;
-    opacity: 0.8;
+    opacity: 0.85;
     transition: opacity 0.15s;
+    white-space: nowrap;
   }
-  .app-header a:hover { opacity: 1; }
+  .site-link:hover { opacity: 1; }
   .app-content {
     flex: 1;
-    padding: 16px 16px calc(70px + var(--safe-bottom));
+    padding: 16px 16px calc(76px + var(--safe-bottom));
     overflow-y: auto;
   }
   .bottom-nav {
@@ -127,7 +154,7 @@
     left: 0;
     right: 0;
     z-index: 30;
-    background: rgba(6,8,13,0.85);
+    background: rgba(6,8,13,0.88);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border-top: 1px solid var(--glass-border);
@@ -140,27 +167,46 @@
     flex-direction: column;
     align-items: center;
     gap: 3px;
-    padding: 10px 0 8px;
+    padding: 9px 0 7px;
     background: none;
     border: none;
     font-family: var(--font-body);
-    font-size: 11px;
+    font-size: 10.5px;
     font-weight: 600;
     color: var(--muted);
     cursor: pointer;
     transition: color 0.2s;
   }
   .bottom-nav button svg {
-    width: 22px;
-    height: 22px;
+    width: 21px;
+    height: 21px;
     transition: filter 0.2s;
   }
-  .bottom-nav button[aria-pressed="true"] {
-    color: var(--accent);
+  .bottom-nav button[aria-pressed="true"] { color: var(--accent); }
+  .bottom-nav button[aria-pressed="true"] svg { filter: drop-shadow(0 0 6px var(--accent-glow)); }
+
+  /* ========== Kicker / seções ========== */
+  .kicker {
+    font-size: 10.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--muted);
+    margin-bottom: 8px;
   }
-  .bottom-nav button[aria-pressed="true"] svg {
-    filter: drop-shadow(0 0 6px var(--accent-glow));
+  .section-title {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--ink);
+    margin: 22px 0 10px;
+    letter-spacing: -0.2px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
   }
+  .section-title:first-child { margin-top: 0; }
 
   /* ========== Cards ========== */
   .card {
@@ -168,14 +214,12 @@
     border: 1px solid var(--glass-border);
     border-radius: var(--radius);
     padding: 16px;
-    margin-bottom: 14px;
+    margin-bottom: 12px;
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     transition: border-color 0.2s;
   }
-  .card:hover {
-    border-color: rgba(255,255,255,0.12);
-  }
+  .card:hover { border-color: rgba(255,255,255,0.12); }
   .card h2 {
     font-family: var(--font-display);
     font-weight: 700;
@@ -185,33 +229,208 @@
     letter-spacing: -0.2px;
   }
 
-  /* ========== Stats ========== */
+  /* ========== Status hero ========== */
+  .hero-card {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(140deg, rgba(6,182,212,0.10), rgba(6,8,13,0.4) 45%);
+    border: 1px solid rgba(6,182,212,0.22);
+    border-radius: var(--radius);
+    padding: 18px;
+    margin-bottom: 12px;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+  }
+  .hero-card::after {
+    content: "";
+    position: absolute;
+    top: -60px;
+    right: -40px;
+    width: 180px;
+    height: 180px;
+    background: radial-gradient(circle, rgba(6,182,212,0.18), transparent 70%);
+    pointer-events: none;
+  }
+  .hero-state {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 4px;
+  }
+  .hero-state .state-badge {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 18px;
+    color: var(--ink);
+  }
+  .hero-sub { font-size: 12.5px; color: var(--ink-secondary); line-height: 1.5; }
+
+  /* ========== Stat grid ========== */
   .stats {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, 1fr);
     gap: 10px;
-    margin-bottom: 14px;
+    margin-bottom: 12px;
   }
   .stat {
     background: var(--glass);
     border: 1px solid var(--glass-border);
     border-radius: var(--radius);
-    padding: 14px;
+    padding: 13px 14px;
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
   }
   .stat .num {
     font-family: var(--font-display);
     font-weight: 800;
-    font-size: 22px;
+    font-size: 20px;
     color: var(--ink);
-    line-height: 1.1;
+    line-height: 1.15;
+    letter-spacing: -0.4px;
   }
-  .stat .label {
-    font-size: 12px;
+  .stat .num.good { color: var(--success); }
+  .stat .num.warn { color: var(--warning); }
+  .stat .num.bad { color: var(--error); }
+  .stat .num.accent { color: var(--accent); }
+  .stat .label { font-size: 11.5px; color: var(--muted); margin-top: 3px; }
+
+  /* ========== Chips / badges ========== */
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 10.5px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: var(--radius-full);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    white-space: nowrap;
+  }
+  .chip .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+  .chip.ok { background: var(--success-dim); color: var(--success); }
+  .chip.warn { background: var(--warning-dim); color: var(--warning); }
+  .chip.err { background: var(--error-dim); color: var(--error); }
+  .chip.neutral { background: var(--glass-strong); color: var(--ink-secondary); border: 1px solid var(--glass-border); }
+  .chip.accent { background: var(--accent-dim); color: var(--accent); }
+
+  .conn-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 11px 0;
+    border-bottom: 1px solid var(--glass-border);
+  }
+  .conn-row:last-child { border-bottom: none; padding-bottom: 0; }
+  .conn-row:first-child { padding-top: 0; }
+  .conn-label { font-size: 13px; color: var(--ink-secondary); display: flex; align-items: center; gap: 8px; }
+  .conn-label strong { color: var(--ink); font-weight: 600; }
+
+  /* ========== Timeline de hoje ========== */
+  .timeline { position: relative; padding-left: 0; }
+  .tl-item {
+    position: relative;
+    display: flex;
+    gap: 12px;
+    padding: 12px 0 12px 24px;
+    border-bottom: 1px solid var(--glass-border);
+  }
+  .tl-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .tl-rail {
+    position: absolute;
+    left: 6px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: rgba(148,163,184,0.18);
+  }
+  .tl-item:last-child .tl-rail { height: 26px; }
+  .tl-dot {
+    position: absolute;
+    left: 0;
+    top: 17px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--bg-secondary);
+    border: 2px solid var(--muted);
+    z-index: 1;
+  }
+  .tl-item.done .tl-dot { border-color: var(--success); background: var(--success); box-shadow: 0 0 8px rgba(16,185,129,0.5); }
+  .tl-item.fail .tl-dot { border-color: var(--error); background: var(--error); box-shadow: 0 0 8px rgba(239,68,68,0.5); }
+  .tl-item.next .tl-dot {
+    border-color: var(--accent);
+    background: var(--accent);
+    box-shadow: 0 0 12px var(--accent-glow);
+    animation: pulse 1.6s ease-in-out infinite;
+  }
+  .tl-item.pending .tl-dot { border-color: var(--muted); }
+  .tl-time {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--ink);
+    min-width: 44px;
+  }
+  .tl-main { flex: 1; min-width: 0; }
+  .tl-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .tl-label { font-size: 13.5px; font-weight: 600; color: var(--ink); }
+  .tl-label .ico { margin-right: 4px; }
+  .tl-detail { font-size: 12px; color: var(--muted); margin-top: 3px; line-height: 1.4; }
+  .tl-detail strong { color: var(--ink-secondary); font-weight: 600; }
+  .next-flag {
+    font-family: var(--font-display);
+    font-size: 9.5px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    color: var(--accent);
+    background: var(--accent-dim);
+    border-radius: var(--radius-full);
+    padding: 3px 9px;
+    text-transform: uppercase;
+  }
+
+  /* ========== Countdown ========== */
+  .cd-wrap { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 6px 0 2px; }
+  .cd-time {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 30px;
+    color: var(--accent);
+    letter-spacing: 1px;
+    text-shadow: 0 0 24px var(--accent-glow);
+    font-variant-numeric: tabular-nums;
+  }
+  .cd-sub { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+  .cd-sub strong { color: var(--ink-secondary); font-weight: 700; text-transform: none; letter-spacing: 0; }
+
+  /* ========== Lista de execuções ========== */
+  .run-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--glass-border);
+  }
+  .run-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .run-when {
+    font-family: var(--font-mono);
+    font-size: 11px;
     color: var(--muted);
-    margin-top: 2px;
+    min-width: 52px;
   }
+  .run-body { flex: 1; min-width: 0; }
+  .run-title { font-size: 13px; font-weight: 600; color: var(--ink); }
+  .run-meta { font-size: 11.5px; color: var(--muted); margin-top: 2px; line-height: 1.35; }
+  .refresh-note { font-size: 11px; color: var(--muted); text-align: right; margin: 2px 2px 8px; }
+  .refresh-note .tt { font-family: var(--font-mono); }
 
   /* ========== Forms ========== */
   label.field-label {
@@ -235,9 +454,7 @@
     background: rgba(255,255,255,0.03);
     transition: border-color 0.2s, box-shadow 0.2s;
   }
-  input::placeholder, textarea::placeholder {
-    color: var(--muted);
-  }
+  input::placeholder, textarea::placeholder { color: var(--muted); }
   input:focus, select:focus, textarea:focus {
     border-color: var(--accent);
     box-shadow: 0 0 0 3px var(--accent-dim), 0 0 20px rgba(6,182,212,0.1);
@@ -250,11 +467,7 @@
     padding-right: 36px;
     background-color: rgba(255,255,255,0.03);
   }
-  textarea {
-    resize: vertical;
-    min-height: 80px;
-    line-height: 1.5;
-  }
+  textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
 
   /* ========== Buttons ========== */
   .btn {
@@ -273,63 +486,20 @@
     min-height: 44px;
   }
   .btn:disabled { opacity: 0.4; cursor: default; }
-  .btn-primary {
-    background: var(--accent);
-    color: #000;
-    box-shadow: 0 0 20px var(--accent-dim);
-  }
-  .btn-primary:hover:not(:disabled) {
-    background: #22d3ee;
-    box-shadow: 0 0 30px var(--accent-glow);
-  }
-  .btn-secondary {
-    background: var(--glass-strong);
-    color: var(--ink-secondary);
-    border: 1px solid var(--glass-border);
-  }
-  .btn-secondary:hover:not(:disabled) {
-    background: var(--glass-hover);
-    border-color: rgba(255,255,255,0.15);
-  }
-  .btn-ghost {
-    background: none;
-    color: var(--accent);
-    padding: 8px 12px;
-    min-height: 36px;
-    font-size: 13px;
-  }
+  .btn-primary { background: var(--accent); color: #000; box-shadow: 0 0 20px var(--accent-dim); }
+  .btn-primary:hover:not(:disabled) { background: #22d3ee; box-shadow: 0 0 30px var(--accent-glow); }
+  .btn-secondary { background: var(--glass-strong); color: var(--ink-secondary); border: 1px solid var(--glass-border); }
+  .btn-secondary:hover:not(:disabled) { background: var(--glass-hover); border-color: rgba(255,255,255,0.15); }
+  .btn-ghost { background: none; color: var(--accent); padding: 8px 12px; min-height: 36px; font-size: 13px; }
   .btn-ghost:hover:not(:disabled) { background: var(--accent-dim); }
-  .btn-danger {
-    background: none;
-    color: var(--muted);
-    padding: 8px 12px;
-    min-height: 36px;
-    font-size: 13px;
-  }
+  .btn-danger { background: none; color: var(--muted); padding: 8px 12px; min-height: 36px; font-size: 13px; }
   .btn-danger:hover:not(:disabled) { background: var(--error-dim); color: var(--error); }
-  .btn-sm {
-    font-size: 12px;
-    padding: 7px 14px;
-    min-height: 32px;
-  }
+  .btn-sm { font-size: 12px; padding: 7px 14px; min-height: 32px; }
 
-  /* ========== Row ========== */
+  /* ========== Row / tabs ========== */
   .row { display: flex; gap: 10px; align-items: flex-end; }
   .row > div { flex: 1; }
-
-  /* ========== Status ========== */
-  .status { margin-top: 10px; font-size: 13px; line-height: 1.5; }
-  .status.error { color: var(--error); }
-  .status.ok { color: var(--success); }
-  .status.info { color: var(--muted); }
-
-  /* ========== Tabs ========== */
-  .tabs {
-    display: flex;
-    gap: 0;
-    margin-bottom: 14px;
-    border-bottom: 1px solid var(--glass-border);
-  }
+  .tabs { display: flex; margin-bottom: 14px; border-bottom: 1px solid var(--glass-border); }
   .tabs button {
     flex: 1;
     background: none;
@@ -343,273 +513,8 @@
     cursor: pointer;
     transition: color 0.2s, border-color 0.2s;
   }
-  .tabs button[aria-pressed="true"] {
-    color: var(--accent);
-    border-bottom-color: var(--accent);
-  }
-
-  .search-wrap { margin-bottom: 12px; }
-
-  /* ========== Products ========== */
-  .product {
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    padding: 14px 0;
-    border-bottom: 1px solid var(--glass-border);
-  }
-  .product:last-child { border-bottom: none; }
-  .product-img {
-    width: 52px;
-    height: 52px;
-    border-radius: var(--radius-sm);
-    object-fit: cover;
-    flex-shrink: 0;
-    background: var(--glass);
-    border: 1px solid var(--glass-border);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 22px;
-    overflow: hidden;
-  }
-  .product-img img {
-    width: 100%;
-    height: 100%;
-    border-radius: var(--radius-sm);
-    object-fit: cover;
-  }
-  .product .info { flex: 1; min-width: 0; }
-  .product .title {
-    font-weight: 600;
-    font-size: 14px;
-    line-height: 1.3;
-    color: var(--ink);
-  }
-  .product .price {
-    color: var(--accent);
-    font-weight: 700;
-    font-size: 14px;
-    margin-top: 2px;
-  }
-  .product .badge {
-    display: inline-block;
-    font-size: 10px;
-    font-weight: 600;
-    color: var(--muted);
-    background: var(--glass);
-    border: 1px solid var(--glass-border);
-    border-radius: var(--radius-full);
-    padding: 2px 8px;
-    margin-left: 6px;
-    vertical-align: middle;
-  }
-  .product .actions {
-    display: flex;
-    gap: 4px;
-    flex-wrap: wrap;
-    margin-top: 8px;
-  }
-  .edit-fields {
-    display: flex;
-    gap: 8px;
-    margin: 6px 0;
-  }
-  .edit-fields input { font-size: 14px; padding: 10px 12px; }
-
-  /* ========== Schedule ========== */
-  .date-nav {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    margin-bottom: 16px;
-  }
-  .date-nav button {
-    width: 40px;
-    height: 40px;
-    border-radius: var(--radius-sm);
-    padding: 0;
-    font-size: 18px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--glass);
-    border: 1px solid var(--glass-border);
-    color: var(--ink);
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-  .date-nav button:hover {
-    background: var(--glass-hover);
-    border-color: rgba(255,255,255,0.15);
-  }
-  .date-nav .date-label {
-    font-family: var(--font-display);
-    font-weight: 700;
-    font-size: 14px;
-    color: var(--ink);
-    min-width: 170px;
-    text-align: center;
-  }
-  .slot {
-    background: var(--glass);
-    border: 1px solid var(--glass-border);
-    border-radius: var(--radius);
-    padding: 14px;
-    margin-bottom: 10px;
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    transition: border-color 0.2s;
-  }
-  .slot:hover { border-color: rgba(255,255,255,0.12); }
-  .slot.slot-posted {
-    border-color: rgba(16,185,129,0.3);
-    background: var(--success-dim);
-  }
-  .slot.slot-skipped {
-    border-color: var(--glass-border);
-    opacity: 0.5;
-  }
-  .slot-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 6px;
-  }
-  .slot-time {
-    font-family: var(--font-display);
-    font-weight: 800;
-    font-size: 16px;
-    color: var(--ink);
-  }
-  .slot-status {
-    font-size: 10px;
-    font-weight: 700;
-    padding: 3px 10px;
-    border-radius: var(--radius-full);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-  .slot-status.pending { background: var(--warning-dim); color: var(--warning); }
-  .slot-status.posted { background: var(--success-dim); color: var(--success); }
-  .slot-status.skipped { background: var(--glass); color: var(--muted); border: 1px solid var(--glass-border); }
-  .slot-meta {
-    font-size: 12px;
-    color: var(--muted);
-    margin-bottom: 10px;
-    line-height: 1.4;
-  }
-  .slot-meta strong { color: var(--ink-secondary); }
-  .slot textarea { margin-bottom: 10px; font-size: 14px; min-height: 64px; }
-  .slot select { margin-bottom: 10px; font-size: 14px; }
-  .slot-actions { display: flex; gap: 6px; flex-wrap: wrap; }
-
-  /* ========== Templates ========== */
-  .template-add-form .row { flex-wrap: wrap; gap: 8px; }
-  .template-add-form select,
-  .template-add-form textarea { font-size: 14px; }
-  .template-item {
-    background: var(--glass);
-    border: 1px solid var(--glass-border);
-    border-radius: var(--radius);
-    padding: 14px;
-    margin-bottom: 8px;
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    transition: border-color 0.2s;
-  }
-  .template-item:hover { border-color: rgba(255,255,255,0.12); }
-  .template-item .tpl-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 4px;
-  }
-  .template-item .tpl-slot {
-    font-family: var(--font-display);
-    font-weight: 700;
-    font-size: 13px;
-    color: var(--ink);
-  }
-  .template-item .tpl-category {
-    font-size: 12px;
-    color: var(--muted);
-  }
-  .template-item .tpl-hook {
-    display: inline-block;
-    font-size: 10px;
-    font-weight: 700;
-    padding: 3px 8px;
-    border-radius: var(--radius-full);
-    background: var(--accent-dim);
-    color: var(--accent);
-    margin-bottom: 8px;
-    letter-spacing: 0.3px;
-  }
-  .template-item .tpl-text {
-    font-size: 14px;
-    line-height: 1.5;
-    color: var(--ink-secondary);
-    margin-bottom: 10px;
-    white-space: pre-wrap;
-  }
-  .template-item .tpl-actions {
-    display: flex;
-    gap: 4px;
-    flex-wrap: wrap;
-  }
-  .tpl-edit-form {
-    display: none;
-    margin-top: 10px;
-  }
-  .tpl-edit-form textarea {
-    font-size: 14px;
-    min-height: 56px;
-    margin-bottom: 8px;
-  }
-
-  /* ========== Login ========== */
-  #login-card {
-    max-width: 360px;
-    margin: 0 auto;
-    padding-top: 80px;
-  }
-  #login-card h2 {
-    font-family: var(--font-display);
-    font-weight: 800;
-    font-size: 20px;
-    text-align: center;
-    margin-bottom: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-  }
-  #login-card h2::before {
-    content: "";
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: var(--accent);
-    box-shadow: 0 0 12px var(--accent-glow), 0 0 24px var(--accent-glow);
-  }
-  #app { display: none; }
-
-  .empty-state {
-    color: var(--muted);
-    font-size: 13px;
-    text-align: center;
-    padding: 24px 0;
-  }
-
-  /* ========== Sub-tabs ========== */
-  .sub-tabs {
-    display: flex;
-    gap: 0;
-    margin-bottom: 14px;
-    border-bottom: 1px solid var(--glass-border);
-  }
+  .tabs button[aria-pressed="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .sub-tabs { display: flex; margin-bottom: 14px; border-bottom: 1px solid var(--glass-border); }
   .sub-tabs button {
     flex: 1;
     background: none;
@@ -623,53 +528,87 @@
     cursor: pointer;
     transition: color 0.2s, border-color 0.2s;
   }
-  .sub-tabs button[aria-pressed="true"] {
-    color: var(--accent);
-    border-bottom-color: var(--accent);
-  }
+  .sub-tabs button[aria-pressed="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .search-wrap { margin-bottom: 12px; }
 
-  /* ========== Filter pills ========== */
-  .filter-pills {
-    display: flex;
-    gap: 6px;
-    margin-bottom: 14px;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    padding-bottom: 2px;
+  /* ========== Produtos ========== */
+  .product { display: flex; align-items: flex-start; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--glass-border); }
+  .product:last-child { border-bottom: none; }
+  .product-img {
+    width: 52px; height: 52px; border-radius: var(--radius-sm); object-fit: cover;
+    flex-shrink: 0; background: var(--glass); border: 1px solid var(--glass-border);
+    display: flex; align-items: center; justify-content: center; font-size: 22px; overflow: hidden;
   }
+  .product-img img { width: 100%; height: 100%; border-radius: var(--radius-sm); object-fit: cover; }
+  .product .info { flex: 1; min-width: 0; }
+  .product .title { font-weight: 600; font-size: 14px; line-height: 1.3; color: var(--ink); }
+  .product .price { color: var(--accent); font-weight: 700; font-size: 14px; margin-top: 2px; }
+  .product .badge {
+    display: inline-block; font-size: 10px; font-weight: 600; color: var(--muted);
+    background: var(--glass); border: 1px solid var(--glass-border); border-radius: var(--radius-full);
+    padding: 2px 8px; margin-left: 6px; vertical-align: middle;
+  }
+  .product .actions { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 8px; }
+  .edit-fields { display: flex; gap: 8px; margin: 6px 0; }
+  .edit-fields input { font-size: 14px; padding: 10px 12px; }
+
+  /* ========== Agenda ========== */
+  .date-nav { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 16px; }
+  .date-nav button {
+    width: 40px; height: 40px; border-radius: var(--radius-sm); padding: 0; font-size: 18px;
+    display: flex; align-items: center; justify-content: center; background: var(--glass);
+    border: 1px solid var(--glass-border); color: var(--ink); cursor: pointer; transition: all 0.2s;
+  }
+  .date-nav button:hover { background: var(--glass-hover); border-color: rgba(255,255,255,0.15); }
+  .date-nav .date-label { font-family: var(--font-display); font-weight: 700; font-size: 14px; color: var(--ink); min-width: 170px; text-align: center; }
+  .slot { background: var(--glass); border: 1px solid var(--glass-border); border-radius: var(--radius); padding: 14px; margin-bottom: 10px; backdrop-filter: blur(8px); transition: border-color 0.2s; }
+  .slot:hover { border-color: rgba(255,255,255,0.12); }
+  .slot.slot-posted { border-color: rgba(16,185,129,0.3); background: var(--success-dim); }
+  .slot.slot-skipped { border-color: var(--glass-border); opacity: 0.5; }
+  .slot-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+  .slot-time { font-family: var(--font-display); font-weight: 800; font-size: 16px; color: var(--ink); }
+  .slot-status { font-size: 10px; font-weight: 700; padding: 3px 10px; border-radius: var(--radius-full); text-transform: uppercase; letter-spacing: 0.5px; }
+  .slot-status.pending { background: var(--warning-dim); color: var(--warning); }
+  .slot-status.posted { background: var(--success-dim); color: var(--success); }
+  .slot-status.skipped { background: var(--glass); color: var(--muted); border: 1px solid var(--glass-border); }
+  .slot-meta { font-size: 12px; color: var(--muted); margin-bottom: 10px; line-height: 1.4; }
+  .slot-meta strong { color: var(--ink-secondary); }
+  .slot textarea { margin-bottom: 10px; font-size: 14px; min-height: 64px; }
+  .slot select { margin-bottom: 10px; font-size: 14px; }
+  .slot-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+
+  /* ========== Templates ========== */
+  .template-add-form .row { flex-wrap: wrap; gap: 8px; }
+  .template-add-form select, .template-add-form textarea { font-size: 14px; }
+  .template-item { background: var(--glass); border: 1px solid var(--glass-border); border-radius: var(--radius); padding: 14px; margin-bottom: 8px; backdrop-filter: blur(8px); transition: border-color 0.2s; }
+  .template-item:hover { border-color: rgba(255,255,255,0.12); }
+  .template-item .tpl-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+  .template-item .tpl-slot { font-family: var(--font-display); font-weight: 700; font-size: 13px; color: var(--ink); }
+  .template-item .tpl-category { font-size: 12px; color: var(--muted); }
+  .template-item .tpl-hook { display: inline-block; font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: var(--radius-full); background: var(--accent-dim); color: var(--accent); margin-bottom: 8px; letter-spacing: 0.3px; }
+  .template-item .tpl-text { font-size: 14px; line-height: 1.5; color: var(--ink-secondary); margin-bottom: 10px; white-space: pre-wrap; }
+  .template-item .tpl-actions { display: flex; gap: 4px; flex-wrap: wrap; }
+  .tpl-edit-form { display: none; margin-top: 10px; }
+  .tpl-edit-form textarea { font-size: 14px; min-height: 56px; margin-bottom: 8px; }
+  .filter-pills { display: flex; gap: 6px; margin-bottom: 14px; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; padding-bottom: 2px; }
   .filter-pills::-webkit-scrollbar { display: none; }
-  .filter-pills button {
-    flex-shrink: 0;
-    background: var(--glass);
-    border: 1px solid var(--glass-border);
-    border-radius: var(--radius-full);
-    font-family: var(--font-body);
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--muted);
-    padding: 6px 14px;
-    cursor: pointer;
-    transition: all 0.2s;
-    white-space: nowrap;
-  }
-  .filter-pills button[aria-pressed="true"] {
-    background: var(--accent-dim);
-    border-color: rgba(6,182,212,0.3);
-    color: var(--accent);
-    box-shadow: 0 0 12px var(--accent-dim);
-  }
+  .filter-pills button { flex-shrink: 0; background: var(--glass); border: 1px solid var(--glass-border); border-radius: var(--radius-full); font-family: var(--font-body); font-size: 12px; font-weight: 600; color: var(--muted); padding: 6px 14px; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
+  .filter-pills button[aria-pressed="true"] { background: var(--accent-dim); border-color: rgba(6,182,212,0.3); color: var(--accent); box-shadow: 0 0 12px var(--accent-dim); }
 
-  /* ========== Glow dot animation ========== */
+  /* ========== Login ========== */
+  #login-card { max-width: 360px; margin: 0 auto; padding-top: 80px; }
+  #login-card h2 { font-family: var(--font-display); font-weight: 800; font-size: 20px; text-align: center; margin-bottom: 20px; display: flex; align-items: center; justify-content: center; gap: 10px; }
+  #login-card h2::before { content: ""; width: 10px; height: 10px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 12px var(--accent-glow), 0 0 24px var(--accent-glow); animation: pulse 2s ease-in-out infinite; }
+  #app { display: none; }
+  .empty-state { color: var(--muted); font-size: 13px; text-align: center; padding: 24px 0; }
+  .status { margin-top: 10px; font-size: 13px; line-height: 1.5; }
+  .status.error { color: var(--error); }
+  .status.ok { color: var(--success); }
+  .status.info { color: var(--muted); }
+
   @keyframes pulse {
     0%, 100% { opacity: 1; }
     50% { opacity: 0.5; }
-  }
-  .app-header h1::before {
-    animation: pulse 2s ease-in-out infinite;
-  }
-  #login-card h2::before {
-    animation: pulse 2s ease-in-out infinite;
   }
 </style>
 </head>
@@ -678,10 +617,11 @@
 <div class="app-shell">
 
   <header class="app-header">
-    <h1>Painel</h1>
-    <div style="display:flex;align-items:center;gap:12px">
-      <button id="logout-btn" type="button" style="display:none;background:var(--glass);border:1px solid var(--glass-border);color:var(--muted);border-radius:var(--radius-full);padding:6px 12px;font-family:var(--font-body);font-size:12px;font-weight:600;cursor:pointer;transition:all .2s">Sair</button>
-      <a href="/" target="_blank" rel="noopener" style="font-size:13px;font-weight:600;color:var(--accent);text-decoration:none;opacity:.8;transition:opacity .15s">Ver site ↗</a>
+    <div class="brand"><span class="logo-dot"></span>Bendito Achadinho</div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <span class="header-clock" id="header-clock">--:-- BRT</span>
+      <button id="logout-btn" type="button">Sair</button>
+      <a class="site-link" href="/" target="_blank" rel="noopener">Ver site ↗</a>
     </div>
   </header>
 
@@ -696,14 +636,44 @@
   <div id="app">
     <div class="app-content">
 
-      <!-- PRODUTOS -->
-      <div id="view-products">
-        <div id="dashboard-status" class="card" style="display:none">
-          <h2>Status do Sistema</h2>
-          <div class="stats" id="dash-stats"></div>
-          <div id="dash-details"></div>
+      <!-- STATUS DO DIA -->
+      <div id="view-status">
+        <div class="refresh-note">Atualizado às <span class="tt" id="status-updated">--:--</span> · atualiza a cada 60s</div>
+
+        <div class="hero-card">
+          <div class="kicker">Automação</div>
+          <div class="hero-state">
+            <span id="auto-badge" class="state-badge">—</span>
+          </div>
+          <div class="hero-sub" id="auto-desc"></div>
         </div>
 
+        <div class="stats" id="status-stats"></div>
+
+        <div class="card">
+          <div class="kicker">Próximo disparo</div>
+          <div class="cd-wrap">
+            <div class="cd-time" id="cd-time">--:--:--</div>
+            <div class="cd-sub" id="cd-sub">—</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="kicker">Conexões</div>
+          <div id="conns"></div>
+        </div>
+
+        <div class="section-title"><span>Agenda de hoje</span><span class="kicker" style="margin:0" id="slots-count"></span></div>
+        <div class="card" style="padding-top:8px">
+          <div class="timeline" id="today-timeline"></div>
+        </div>
+
+        <div class="section-title"><span>Últimas execuções</span></div>
+        <div class="card" id="recent-runs" style="padding-top:8px"></div>
+      </div>
+
+      <!-- PRODUTOS -->
+      <div id="view-products" style="display:none">
         <div class="stats" id="stats"></div>
 
         <div class="card">
@@ -717,6 +687,8 @@
           </div>
           <div id="curate-status" class="status" role="status" aria-live="polite"></div>
         </div>
+
+        <div id="published-actions"></div>
 
         <div class="card">
           <h2>Publicados</h2>
@@ -759,13 +731,15 @@
                 <div>
                   <label class="field-label" for="tpl-time">Horário</label>
                   <select id="tpl-time">
-                    <option value="08h">08h</option>
-                    <option value="11h">11h</option>
-                    <option value="13h">13h</option>
-                    <option value="15h">15h</option>
+                    <option value="08h">08h — Bom dia</option>
+                    <option value="10h">10h</option>
+                    <option value="12h">12h</option>
+                    <option value="14h">14h</option>
+                    <option value="16h">16h</option>
                     <option value="18h">18h</option>
-                    <option value="21h">21h</option>
-                    <option value="23h">23h</option>
+                    <option value="20h">20h</option>
+                    <option value="22h">22h</option>
+                    <option value="23h">23h — Boa noite</option>
                   </select>
                 </div>
                 <div>
@@ -794,11 +768,13 @@
             <div class="filter-pills" role="tablist">
               <button type="button" class="tpl-filter" data-tpl-slot="all" aria-pressed="true">Todos</button>
               <button type="button" class="tpl-filter" data-tpl-slot="08h" aria-pressed="false">08h</button>
-              <button type="button" class="tpl-filter" data-tpl-slot="11h" aria-pressed="false">11h</button>
-              <button type="button" class="tpl-filter" data-tpl-slot="13h" aria-pressed="false">13h</button>
-              <button type="button" class="tpl-filter" data-tpl-slot="15h" aria-pressed="false">15h</button>
+              <button type="button" class="tpl-filter" data-tpl-slot="10h" aria-pressed="false">10h</button>
+              <button type="button" class="tpl-filter" data-tpl-slot="12h" aria-pressed="false">12h</button>
+              <button type="button" class="tpl-filter" data-tpl-slot="14h" aria-pressed="false">14h</button>
+              <button type="button" class="tpl-filter" data-tpl-slot="16h" aria-pressed="false">16h</button>
               <button type="button" class="tpl-filter" data-tpl-slot="18h" aria-pressed="false">18h</button>
-              <button type="button" class="tpl-filter" data-tpl-slot="21h" aria-pressed="false">21h</button>
+              <button type="button" class="tpl-filter" data-tpl-slot="20h" aria-pressed="false">20h</button>
+              <button type="button" class="tpl-filter" data-tpl-slot="22h" aria-pressed="false">22h</button>
               <button type="button" class="tpl-filter" data-tpl-slot="23h" aria-pressed="false">23h</button>
             </div>
             <div id="template-list" aria-live="polite"></div>
@@ -815,14 +791,10 @@
             <span style="font-size:14px;color:var(--ink)">Ligado (publica no grupo todos os dias)</span>
           </label>
           <div id="pause-section" style="display:none;margin-top:8px">
-            <button type="button" id="cfg-pause-btn" class="btn btn-outline" style="width:100%">
-              ⏸ Pausar até amanhã (08h)
-            </button>
+            <button type="button" id="cfg-pause-btn" class="btn btn-secondary" style="width:100%">⏸ Pausar até amanhã (08h)</button>
             <div id="pause-active" style="display:none;margin-top:8px;padding:10px;background:var(--bg);border-radius:var(--radius-sm);border:1px dashed #f59e0b;font-size:13px;color:var(--ink-secondary)">
               <span id="pause-info"></span>
-              <button type="button" id="cfg-unpause-btn" class="btn btn-outline" style="margin-top:6px;padding:4px 12px;font-size:12px">
-                Cancelar pausa
-              </button>
+              <button type="button" id="cfg-unpause-btn" class="btn btn-secondary" style="margin-top:6px;padding:4px 12px;font-size:12px">Cancelar pausa</button>
             </div>
           </div>
           <div id="cfg-save-status-auto" class="status" role="status" aria-live="polite"></div>
@@ -893,7 +865,11 @@
   </div>
 
   <nav class="bottom-nav" id="bottom-nav" style="display:none">
-    <button type="button" data-view="products" aria-pressed="true">
+    <button type="button" data-view="status" aria-pressed="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+      Status
+    </button>
+    <button type="button" data-view="products" aria-pressed="false">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
       Produtos
     </button>
@@ -910,33 +886,52 @@
 </div>
 
 <script>
-  const TIME_SLOTS = ["08h","11h","13h","15h","18h","21h","23h"];
+  const TIME_SLOTS = ["08h","10h","12h","14h","16h","18h","20h","22h","23h"];
   const SLOT_CONFIG = {
-    "08h":{category:"Terços e papelaria",hook:"identidade"},
-    "11h":{category:"Decoração católica",hook:"beneficio"},
-    "13h":{category:"Moda e acessórios",hook:"curiosidade"},
-    "15h":{category:"Presentes / comunhão",hook:"beneficio"},
-    "18h":{category:"Livros espirituais",hook:"identidade"},
-    "21h":{category:"Terços e decoração (mix)",hook:"urgencia"},
-    "23h":{category:"Joias e presentes",hook:"urgencia"},
+    "08h":{category:"Saudação matinal",hook:"identidade"},
+    "10h":{category:"Moda gospel",hook:"beneficio"},
+    "12h":{category:"Terços e orações",hook:"identidade"},
+    "14h":{category:"Decoração católica",hook:"curiosidade"},
+    "16h":{category:"Livros e bíblias",hook:"beneficio"},
+    "18h":{category:"Presentes / comunhão",hook:"identidade"},
+    "20h":{category:"Moda e acessórios",hook:"urgencia"},
+    "22h":{category:"Joias e presentes",hook:"curiosidade"},
+    "23h":{category:"Saudação noturna",hook:"urgencia"},
   };
   const HOOK_LABELS = {identidade:"Identidade",beneficio:"Benefício",curiosidade:"Curiosidade",urgencia:"Urgência"};
+
+  const SLOT_STATUS_META = {
+    sent:        { cls:"ok",      label:"Enviado" },
+    no_offers:   { cls:"neutral", label:"Sem ofertas" },
+    disabled:    { cls:"warn",    label:"Desligado" },
+    dry_run:     { cls:"neutral", label:"Teste" },
+    error:       { cls:"err",     label:"Falhou" },
+    skipped:     { cls:"neutral", label:"Pulado" },
+    scheduled:   { cls:"accent",  label:"Agendado" },
+    unregistered:{ cls:"warn",    label:"Não registrado" },
+  };
 
   let authHeader = localStorage.getItem("adminAuth") || "";
   let allProducts = [];
   let statusFilter = "active";
-  let currentView = "products";
+  let currentView = "status";
   let currentContentTab = "schedule";
   let selectedDate = new Date();
   let currentPosts = [];
   let allTemplates = [];
   let tplFilterSlot = "all";
+  let lastStatus = null;
+  let statusTimer = null;
 
   function formatBRL(v) { return "R$ "+Number(v).toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2}); }
   function escapeHtml(s) { return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
-  function formatDateBR(s) { const [y,m,d]=s.split("-"); return `${d}/${m}/${y}`; }
+  function formatDateBR(s) { if(!s) return ""; const [y,m,d]=s.split("-"); return `${d}/${m}/${y}`; }
   function toLocalDateStr(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; }
   function toWeekday(s) { const days=["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"]; const [y,m,d]=s.split("-").map(Number); return days[new Date(y,m-1,d).getDay()]; }
+  function pad2(n) { return String(n).padStart(2,"0"); }
+  function fmtClock(d) { return `${pad2(d.getHours())}:${pad2(d.getMinutes())}`; }
+  function hhmmss(sec) { sec=Math.max(0,Math.floor(sec)); const h=Math.floor(sec/3600), m=Math.floor((sec%3600)/60), s=sec%60; return `${pad2(h)}:${pad2(m)}:${pad2(s)}`; }
+  function fmtSuffix(n,s) { return `${n} ${n===1?s:s+"s"}`; }
 
   async function api(path, opts = {}) {
     const res = await fetch(path, { ...opts, headers: { ...(opts.headers || {}), Authorization: authHeader } });
@@ -956,8 +951,8 @@
     document.getElementById("app").style.display = "block";
     document.getElementById("bottom-nav").style.display = "flex";
     document.getElementById("logout-btn").style.display = "block";
+    switchView("status");
     loadProducts();
-    loadDashboard();
   }
   async function tryLogin() {
     const pw = document.getElementById("password-input").value;
@@ -974,12 +969,13 @@
   function switchView(v) {
     currentView=v;
     document.querySelectorAll(".bottom-nav button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.view===v)));
+    document.getElementById("view-status").style.display=v==="status"?"block":"none";
     document.getElementById("view-products").style.display=v==="products"?"block":"none";
     document.getElementById("view-content").style.display=v==="content"?"block":"none";
     document.getElementById("view-config").style.display=v==="config"?"block":"none";
+    if(v==="status"){ loadStatus(); startStatusTick(); }
     if(v==="content"&&currentContentTab==="schedule") loadSchedule();
     if(v==="content"&&currentContentTab==="templates") loadTemplates();
-    if(v==="products") loadDashboard();
     if(v==="config") loadConfig();
   }
   function switchContentTab(t) {
@@ -989,6 +985,155 @@
     document.getElementById("content-templates").style.display=t==="templates"?"block":"none";
     if(t==="schedule") loadSchedule();
     if(t==="templates") loadTemplates();
+  }
+
+  function startStatusTick() {
+    updateClock();
+    setInterval(updateClock, 1000);
+  }
+
+  // ============ STATUS: relógio BRT ============
+  function brtParts() {
+    const now = new Date();
+    const parts = new Intl.DateTimeFormat("en-CA",{timeZone:"America/Sao_Paulo",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false}).formatToParts(now);
+    const get=(t)=>parts.find(p=>p.type===t)?.value||"0";
+    return { y:get("year"), m:get("month"), d:get("day"), h:get("hour"), min:get("minute"), s:get("second") };
+  }
+  function updateClock() {
+    const p = brtParts();
+    document.getElementById("header-clock").textContent = `${p.h}:${p.min} BRT`;
+    const cd = document.getElementById("cd-time");
+    if (cd && lastStatus && lastStatus.nextRun && cd.dataset.live==="1") {
+      let sec = (lastStatus._cdBase || 0) + Math.floor((Date.now() - lastStatus._cdT) / 1000);
+      const total = lastStatus.nextRun.countdownSeconds;
+      if (sec > total) sec = total;
+      cd.textContent = hhmmss(sec);
+    }
+  }
+
+  // ============ STATUS: dashboard ============
+  function statusChip(status) {
+    const m = SLOT_STATUS_META[status] || { cls:"neutral", label:status };
+    return `<span class="chip ${m.cls}"><span class="dot"></span>${m.label}</span>`;
+  }
+
+  function renderStatus(s) {
+    lastStatus = s;
+    document.getElementById("status-updated").textContent = fmtClock(new Date(brtNowISO(s.now)));
+
+    // Hero (automação)
+    const as = s.automation.state;
+    document.getElementById("auto-badge").textContent = as === "ativo" ? "Ativa" : as === "pausado" ? "Pausada" : "Desligada";
+    document.getElementById("auto-badge").style.color = as === "ativo" ? "var(--success)" : as === "pausado" ? "var(--warning)" : "var(--error)";
+    const evoOk = s.evolution.status === "open";
+    const evoTxt = evoOk ? "WhatsApp conectado" : s.evolution.status === "connecting" ? "Conectando..." : "WhatsApp desconectado";
+    const pauseTxt = s.automation.pausedUntil ? ` · pausada até ${new Date(s.automation.pausedUntil).toLocaleString("pt-BR",{timeZone:"America/Sao_Paulo",day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}` : "";
+    document.getElementById("auto-desc").innerHTML =
+      `<span style="color:${evoOk?"var(--success)":"var(--error)"}">●</span> ${evoTxt} (${escapeHtml(s.evolution.instance)}) · instância <strong style="color:var(--ink-secondary)">${s.automation.state==="ativo"?"em operação":as}${pauseTxt}</strong>`;
+
+    // Stats
+    document.getElementById("status-stats").innerHTML = `
+      <div class="stat"><div class="num ${as==="ativo"?s.greetings.bomDia.sent?"good":"":"warn"}">${s.greetings.bomDia.sent?"✓":"✗"}</div><div class="label">Bom dia (08h) ${s.greetings.bomDia.sent?"enviado":"não enviado"}</div></div>
+      <div class="stat"><div class="num ${s.greetings.boaNoite.sent?"good":s.greetings.boaNoite.status==="scheduled"?"accent":s.brHour>=23?"warn":"neutral"}">${s.greetings.boaNoite.sent?"✓":"•"}</div><div class="label">Boa noite (23h) ${s.greetings.boaNoite.sent?"enviado":s.greetings.boaNoite.status==="scheduled"?"agendado":"não enviado"}</div></div>
+      <div class="stat"><div class="num good">${s.todayStats.published}</div><div class="label">ofertas enviadas hoje</div></div>
+      <div class="stat"><div class="num accent">${s.products.active}</div><div class="label">produtos ativos no site</div></div>
+    `;
+
+    // Countdown
+    const nr = s.nextRun;
+    const cd = document.getElementById("cd-time");
+    cd.dataset.live = "1";
+    lastStatus._cdBase = nr.countdownSeconds;
+    lastStatus._cdT = Date.now();
+    cd.textContent = hhmmss(nr.countdownSeconds);
+    document.getElementById("cd-sub").innerHTML = nr.tomorrow
+      ? `${nr.emoji} <strong>${nr.label}</strong> de amanhã às <strong>${nr.at}</strong> (BRT)`
+      : `${nr.emoji} <strong>${nr.label}</strong> às <strong>${nr.at}</strong> (BRT)`;
+
+    // Conexões
+    const evoColor = evoOk ? "var(--success)" : "var(--error)";
+    const evoLabel = evoOk ? "Conectado" : s.evolution.status === "connecting" ? "Conectando..." : "Desconectado";
+    const autoColor = as === "ativo" ? "var(--success)" : as === "pausado" ? "var(--warning)" : "var(--error)";
+    const autoLabel = as === "ativo" ? "Ligada" : as === "pausado" ? "Pausada" : "Desligada";
+    document.getElementById("conns").innerHTML = `
+      <div class="conn-row">
+        <span class="conn-label">Automação <strong>${autoLabel}${s.automation.pausedUntil?` até ${new Date(s.automation.pausedUntil).toLocaleString("pt-BR",{timeZone:"America/Sao_Paulo",day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}`:""}`}</span>
+        <span class="chip ${as==="ativo"?"ok":as==="pausado"?"warn":"err"}"><span class="dot" style="background:${autoColor}"></span>${autoLabel}</span>
+      </div>
+      <div class="conn-row">
+        <span class="conn-label">Evolution (WhatsApp) <strong>${escapeHtml(s.evolution.instance||"?")}</strong></span>
+        <span class="chip ${evoOk?"ok":"err"}"><span class="dot" style="background:${evoColor}"></span>${evoLabel}</span>
+      </div>
+      <div class="conn-row">
+        <span class="conn-label">Grupo de ofertas <strong>${escapeHtml(String(s.automation.state||"")==="ativo"?"em publicação":"—")}</strong></span>
+      </div>
+    `;
+
+    // Agenda de hoje (timeline)
+    document.getElementById("slots-count").textContent =
+      `${s.todayStats.sentRuns} enviado${s.todayStats.sentRuns===1?"":"s"} hoje`;
+    const tl = document.getElementById("today-timeline");
+    tl.innerHTML = s.schedule.slots.map(sl=>{
+      const meta = SLOT_STATUS_META[sl.status] || { cls:"neutral", label:sl.statusLabel };
+      const cls = sl.isNext ? "next" : sl.status==="sent" ? "done" : (sl.status==="error"||sl.status==="unregistered") ? "fail" : (sl.status==="no_offers"||sl.status==="disabled"||sl.status==="skipped") ? "pending" : "pending";
+      let detail;
+      if (sl.isNext) detail = "próximo disparo";
+      else if (sl.log) {
+        const bits=[];
+        if (sl.log.published) bits.push(`${fmtSuffix(sl.log.published,"oferta")} enviada${sl.log.published>1?"s":""}`);
+        if (sl.log.saved) bits.push(`${sl.log.saved} cadastrado${sl.log.saved>1?"s":""} no site`);
+        if (sl.log.errors) bits.push(`${sl.log.errors} erro${sl.log.errors>1?"s":""}`);
+        detail = bits.length?bits.join(" · "):(sl.log.detail||sl.statusLabel);
+      } else if (sl.status==="scheduled") detail = "agendado";
+      else if (sl.status==="unregistered") detail = "horário passou sem registro de execução";
+      else detail = sl.statusLabel;
+      return `<div class="tl-item ${cls}">
+        <span class="tl-rail"></span><span class="tl-dot"></span>
+        <div class="tl-time">${sl.at}</div>
+        <div class="tl-main">
+          <div class="tl-top">
+            <span class="tl-label"><span class="ico">${sl.emoji}</span>${sl.label}</span>
+            ${sl.isNext?`<span class="next-flag">Próximo</span>`:statusChip(sl.status)}
+          </div>
+          <div class="tl-detail">${escapeHtml(detail)}${sl.log?` <strong>· ${fmtClock(new Date(sl.log.time))}</strong>`:""}</div>
+        </div>
+      </div>`;
+    }).join("");
+
+    // Últimas execuções
+    const rc = document.getElementById("recent-runs");
+    if (!s.recentLogs.length) {
+      rc.innerHTML = `<p class="empty-state">Nenhuma execução registrada ainda. As próximas publicações automáticas vão aparecer aqui.</p>`;
+    } else {
+      rc.innerHTML = s.recentLogs.map(l=>{
+        const meta = SLOT_STATUS_META[l.status] || { cls:"neutral", label:l.statusLabel };
+        const nm = l.type==="greeting" ? (l.hour<15?"☀️ Bom dia":"🌙 Boa noite") : (l.hour?"🛍️ Produtos":"🛍️ Produtos");
+        const bits=[];
+        if (l.published) bits.push(`${fmtSuffix(l.published,"oferta")}`);
+        if (l.saved) bits.push(`${l.saved} no site`);
+        if (l.errors) bits.push(`${l.errors} erro${l.errors>1?"s":""}`);
+        const metaTxt = bits.length?`<span style="color:var(--ink-secondary);font-weight:600">· ${bits.join(" · ")}</span>`:"";
+        return `<div class="run-item">
+          <span class="run-when">${fmtClock(new Date(l.time))}</span>
+          <span class="run-body">
+            <div class="run-title">${nm} <span style="font-weight:400;color:var(--muted)">${l.runDate===s.today?"hoje":l.runDate}${l.hour!=null?` às ${pad2(l.hour)}h`:""}</span></div>
+            <div class="run-meta">${escapeHtml(l.detail||"")} ${metaTxt}</div>
+          </span>
+          <span class="chip ${meta.cls}"><span class="dot"></span>${meta.label}</span>
+        </div>`;
+      }).join("");
+    }
+  }
+
+  function brtNowISO(nowISO) {
+    return new Date(nowISO);
+  }
+
+  async function loadStatus() {
+    try {
+      const r = await api("/api/admin/status");
+      renderStatus(await r.json());
+    } catch(e) { if(e.message!=="unauthorized"){ /* mantém último render */ } }
   }
 
   // PRODUTOS
@@ -1007,7 +1152,8 @@
     const bs=allProducts.filter(p=>{if(statusFilter==="active")return p.active;if(statusFilter==="inactive")return!p.active;return true;});
     const f=q?bs.filter(p=>p.title.toLowerCase().includes(q)):bs;
     const el=document.getElementById("product-list");
-    if(!f.length){el.innerHTML=`<p class="empty-state">${q?"Nenhum resultado.":{active:"Nenhum ativo.",inactive:"Nenhum removido.",all:"Nenhum cadastrado."}[statusFilter]}</p>`;return;}
+    const map={active:"Nenhum ativo.",inactive:"Nenhum removido.",all:"Nenhum cadastrado."};
+    if(!f.length){el.innerHTML=`<p class="empty-state">${q?"Nenhum resultado.":map[statusFilter]}</p>`;return;}
     el.innerHTML=f.map(renderProductRow).join(""); attachRowHandlers();
   }
   function attachRowHandlers() {
@@ -1079,63 +1225,11 @@
     finally{btn.disabled=false;}
   }
 
-  // Listeners
-  document.getElementById("login-btn").addEventListener("click",tryLogin);
-  document.getElementById("password-input").addEventListener("keydown",e=>{if(e.key==="Enter")tryLogin();});
-  document.getElementById("search-input").addEventListener("input",applyFilterAndRender);
-  document.querySelectorAll(".status-tab").forEach(b=>b.addEventListener("click",()=>{statusFilter=b.dataset.status;document.querySelectorAll(".status-tab").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));applyFilterAndRender();}));
-  document.querySelectorAll(".bottom-nav button").forEach(b=>b.addEventListener("click",()=>switchView(b.dataset.view)));
-  document.querySelectorAll(".content-tab").forEach(b=>b.addEventListener("click",()=>switchContentTab(b.dataset.contentTab)));
-  document.getElementById("prev-day").addEventListener("click",()=>{selectedDate.setDate(selectedDate.getDate()-1);loadSchedule();});
-  document.getElementById("next-day").addEventListener("click",()=>{selectedDate.setDate(selectedDate.getDate()+1);loadSchedule();});
-  document.getElementById("tpl-save-btn").addEventListener("click",saveNewTemplate);
-  document.querySelectorAll(".tpl-filter").forEach(b=>b.addEventListener("click",()=>{tplFilterSlot=b.dataset.tplSlot;document.querySelectorAll(".tpl-filter").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));renderTemplates();}));
-  document.getElementById("curate-btn").addEventListener("click",async()=>{const inp=document.getElementById("url-input"),st=document.getElementById("curate-status"),btn=document.getElementById("curate-btn"),url=inp.value.trim();if(!url)return;btn.disabled=true;st.className="status info";st.textContent="Buscando na Shopee...";try{const r=await api("/api/admin/curate",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({url})});const d=await r.json();if(!r.ok){st.className="status error";st.textContent=d.error;return;}if(d.duplicate){st.className="status info";st.textContent=`Já cadastrado: ${d.title} — ${formatBRL(d.price)}`;}else{st.className="status ok";st.textContent=`Cadastrado: ${d.title} — ${formatBRL(d.price)}`;}inp.value="";loadProducts();}catch(e){if(e.message!=="unauthorized"){st.className="status error";st.textContent=e.message;}}finally{btn.disabled=false;}});
-  document.getElementById("url-input").addEventListener("keydown",e=>{if(e.key==="Enter")document.getElementById("curate-btn").click();});
-  document.getElementById("logout-btn").addEventListener("click",()=>{localStorage.removeItem("adminAuth");authHeader="";showLogin("");});
-
-  // DASHBOARD
-  async function loadDashboard() {
-    try {
-      const r = await api("/api/admin/status");
-      const s = await r.json();
-      document.getElementById("dashboard-status").style.display = "block";
-      document.getElementById("dash-stats").innerHTML = `
-        <div class="stat"><div class="num">${s.products.active}</div><div class="label">produtos ativos</div></div>
-        <div class="stat"><div class="num">${s.products.removed}</div><div class="label">removidos</div></div>
-        <div class="stat"><div class="num">${formatBRL(s.products.totalValue)}</div><div class="label">valor total</div></div>
-        <div class="stat"><div class="num">${s.schedule.nextHour}h</div><div class="label">próximo disparo</div></div>
-      `;
-      const evoColor = s.evolution.status === "open" ? "var(--success)" : "var(--error)";
-      const evoLabel = s.evolution.status === "open" ? "Conectado" : s.evolution.status === "connecting" ? "Conectando..." : "Desconectado";
-      const autoState = s.automation?.state || "ativo";
-      const autoColor = autoState === "ativo" ? "var(--success)" : autoState === "pausado" ? "#f59e0b" : "var(--error)";
-      const autoLabel = autoState === "ativo" ? "Ativo" : autoState === "pausado" ? "Pausado" : "Desligado";
-      const pausedInfo = s.automation?.pausedUntil ? ` até ${new Date(s.automation.pausedUntil).toLocaleString("pt-BR",{timeZone:"America/Sao_Paulo",day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}` : "";
-      document.getElementById("dash-details").innerHTML = `
-        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px">
-          <div style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--ink-secondary)">
-            <span style="width:8px;height:8px;border-radius:50%;background:${autoColor};box-shadow:0 0 6px ${autoColor}"></span>
-            Automação: <strong style="color:${autoColor}">${autoLabel}${pausedInfo}</strong>
-          </div>
-          <div style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--ink-secondary)">
-            <span style="width:8px;height:8px;border-radius:50%;background:${evoColor};box-shadow:0 0 6px ${evoColor}"></span>
-            Evolution: <strong style="color:${evoColor}">${evoLabel}</strong> (${s.evolution.instance})
-          </div>
-          <div style="font-size:13px;color:var(--ink-secondary)">
-            Próximo: <strong>${s.schedule.nextType}</strong> às ${s.schedule.nextHour}h
-          </div>
-        </div>
-      `;
-    } catch { document.getElementById("dashboard-status").style.display = "none"; }
-  }
-
   // CONFIGURAÇÕES
   async function loadConfig() {
     try {
       const r = await api("/api/admin/config");
       const c = await r.json();
-      // Automação
       const enabled = c.AUTOPUBLISH_ENABLED !== "false";
       document.getElementById("cfg-enabled").checked = enabled;
       document.getElementById("pause-section").style.display = enabled ? "block" : "none";
@@ -1146,13 +1240,8 @@
         if (Number.isFinite(until.getTime()) && until.getTime() > Date.now()) {
           pauseActive.style.display = "block";
           document.getElementById("pause-info").textContent = `Pausado até ${until.toLocaleString("pt-BR",{timeZone:"America/Sao_Paulo",day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}`;
-        } else {
-          pauseActive.style.display = "none";
-        }
-      } else {
-        pauseActive.style.display = "none";
-      }
-      // Outros
+        } else { pauseActive.style.display = "none"; }
+      } else { pauseActive.style.display = "none"; }
       document.getElementById("cfg-keywords").value = c.AUTOPUBLISH_KEYWORDS || "";
       document.getElementById("cfg-min-discount").value = c.AUTOPUBLISH_MIN_DISCOUNT || 20;
       document.getElementById("cfg-min-price").value = c.AUTOPUBLISH_MIN_PRICE || 5;
@@ -1197,7 +1286,6 @@
     finally { btn.disabled = false; }
   });
 
-  // Toggle geral on/off
   document.getElementById("cfg-enabled").addEventListener("change", async () => {
     const enabled = document.getElementById("cfg-enabled").checked;
     const st = document.getElementById("cfg-save-status-auto");
@@ -1206,10 +1294,7 @@
       await api("/api/admin/config", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          AUTOPUBLISH_ENABLED: enabled ? "true" : "false",
-          AUTOPUBLISH_PAUSED_UNTIL: enabled ? "" : "",
-        }),
+        body: JSON.stringify({ AUTOPUBLISH_ENABLED: enabled ? "true" : "false", AUTOPUBLISH_PAUSED_UNTIL: "" }),
       });
       st.className = "status ok";
       st.textContent = enabled ? "Automação ligada!" : "Automação desligada — tudo pausado";
@@ -1218,11 +1303,9 @@
     } catch (e) { st.className = "status error"; st.textContent = e.message; }
   });
 
-  // Pausar até amanhã
   document.getElementById("cfg-pause-btn").addEventListener("click", async () => {
     const st = document.getElementById("cfg-save-status-auto");
     st.className = "status info"; st.textContent = "Pausando...";
-    // Calcula 08h de amanhã (BRT)
     const now = new Date();
     const brNow = new Date(now.toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
     const tomorrow8h = new Date(brNow);
@@ -1230,11 +1313,7 @@
     tomorrow8h.setHours(8, 0, 0, 0);
     const iso = tomorrow8h.toISOString();
     try {
-      await api("/api/admin/config", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ AUTOPUBLISH_PAUSED_UNTIL: iso }),
-      });
+      await api("/api/admin/config", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ AUTOPUBLISH_PAUSED_UNTIL: iso }) });
       st.className = "status ok";
       st.textContent = `Pausado até ${tomorrow8h.toLocaleString("pt-BR",{timeZone:"America/Sao_Paulo",day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}`;
       document.getElementById("pause-active").style.display = "block";
@@ -1242,22 +1321,49 @@
     } catch (e) { st.className = "status error"; st.textContent = e.message; }
   });
 
-  // Cancelar pausa
   document.getElementById("cfg-unpause-btn").addEventListener("click", async () => {
     const st = document.getElementById("cfg-save-status-auto");
     st.className = "status info"; st.textContent = "Cancelando pausa...";
     try {
-      await api("/api/admin/config", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ AUTOPUBLISH_PAUSED_UNTIL: "" }),
-      });
+      await api("/api/admin/config", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ AUTOPUBLISH_PAUSED_UNTIL: "" }) });
       st.className = "status ok"; st.textContent = "Pausa cancelada — automação rodando!";
       document.getElementById("pause-active").style.display = "none";
     } catch (e) { st.className = "status error"; st.textContent = e.message; }
   });
 
-  if(authHeader){api("/api/admin/products").then(()=>showApp()).catch(()=>showLogin(""));}
+  // LISTENERS
+  document.getElementById("login-btn").addEventListener("click", tryLogin);
+  document.getElementById("password-input").addEventListener("keydown", e=>{ if(e.key==="Enter") tryLogin(); });
+  document.getElementById("search-input").addEventListener("input", applyFilterAndRender);
+  document.querySelectorAll(".status-tab").forEach(b=>b.addEventListener("click",()=>{ statusFilter=b.dataset.status; document.querySelectorAll(".status-tab").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); applyFilterAndRender(); }));
+  document.querySelectorAll(".bottom-nav button").forEach(b=>b.addEventListener("click",()=>switchView(b.dataset.view)));
+  document.querySelectorAll(".content-tab").forEach(b=>b.addEventListener("click",()=>switchContentTab(b.dataset.contentTab)));
+  document.getElementById("prev-day").addEventListener("click",()=>{ selectedDate.setDate(selectedDate.getDate()-1); loadSchedule(); });
+  document.getElementById("next-day").addEventListener("click",()=>{ selectedDate.setDate(selectedDate.getDate()+1); loadSchedule(); });
+  document.getElementById("tpl-save-btn").addEventListener("click", saveNewTemplate);
+  document.querySelectorAll(".tpl-filter").forEach(b=>b.addEventListener("click",()=>{ tplFilterSlot=b.dataset.tplSlot; document.querySelectorAll(".tpl-filter").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); renderTemplates(); }));
+  document.getElementById("curate-btn").addEventListener("click", async ()=>{
+    const inp=document.getElementById("url-input"),st=document.getElementById("curate-status"),btn=document.getElementById("curate-btn"),url=inp.value.trim();
+    if(!url) return;
+    btn.disabled=true; st.className="status info"; st.textContent="Buscando na Shopee...";
+    try {
+      const r=await api("/api/admin/curate",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({url})});
+      const d=await r.json();
+      if(!r.ok){st.className="status error";st.textContent=d.error;return;}
+      if(d.duplicate){st.className="status info";st.textContent=`Já cadastrado: ${d.title} — ${formatBRL(d.price)}`;}
+      else{st.className="status ok";st.textContent=`Cadastrado: ${d.title} — ${formatBRL(d.price)}`;}
+      inp.value=""; loadProducts();
+    } catch(e){ if(e.message!=="unauthorized"){st.className="status error";st.textContent=e.message;} }
+    finally{ btn.disabled=false; }
+  });
+  document.getElementById("url-input").addEventListener("keydown", e=>{ if(e.key==="Enter") document.getElementById("curate-btn").click(); });
+  document.getElementById("logout-btn").addEventListener("click", ()=>{ localStorage.removeItem("adminAuth"); authHeader=""; showLogin(""); });
+
+  // Auto-refresh do status a cada 60s
+  setInterval(()=>{ if(currentView==="status") loadStatus(); }, 60000);
+
+  startStatusTick();
+  if(authHeader){ api("/api/admin/products").then(()=>showApp()).catch(()=>showLogin("")); }
 </script>
 
 </body>

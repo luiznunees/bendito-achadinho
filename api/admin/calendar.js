@@ -1,7 +1,7 @@
 const { requireAdminAuth } = require("../../lib/adminAuth");
 const { getPostsForDate, upsertDailyPost } = require("../../lib/db");
 
-const TIME_SLOTS = ["08h", "11h", "13h", "15h", "18h", "21h", "23h"];
+const TIME_SLOTS = ["08h", "10h", "12h", "14h", "16h", "18h", "20h", "22h", "23h"];
 
 module.exports = async function handler(req, res) {
   if (!requireAdminAuth(req, res)) return;

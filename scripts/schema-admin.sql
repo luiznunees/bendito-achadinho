@@ -45,3 +45,27 @@ create table if not exists public.settings (
 alter table public.settings enable row level security;
 create policy "anon read settings"
   on public.settings for select using (true);
+
+-- Log de execuções do auto-publish: alimenta o dashboard de status
+-- (o que foi enviado, quando e com qual resultado).
+create table if not exists public.auto_publish_log (
+  id bigint generated always as identity primary key,
+  run_date date not null,
+  slot_hour int,
+  type text not null,
+  status text not null,
+  detail text,
+  published_count int not null default 0,
+  saved_count int not null default 0,
+  skipped_count int not null default 0,
+  error_count int not null default 0,
+  shopee_item_ids bigint[] default '{}',
+  created_at timestamptz not null default now()
+);
+
+create index if not exists auto_publish_log_run_date_idx
+  on public.auto_publish_log (run_date, created_at desc);
+
+alter table public.auto_publish_log enable row level security;
+create policy "anon read auto_publish_log"
+  on public.auto_publish_log for select using (true);
