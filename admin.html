@@ -1077,7 +1077,7 @@
     const autoLabel = as === "ativo" ? "Ligada" : as === "pausado" ? "Pausada" : "Desligada";
     document.getElementById("conns").innerHTML = `
       <div class="conn-row">
-        <span class="conn-label">Automação <strong>${autoLabel}${s.automation.pausedUntil?` até ${new Date(s.automation.pausedUntil).toLocaleString("pt-BR",{timeZone:"America/Sao_Paulo",day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}`:""}`}</span>
+        <span class="conn-label">Automação <strong>${autoLabel}${s.automation.pausedUntil?` até ${new Date(s.automation.pausedUntil).toLocaleString("pt-BR",{timeZone:"America/Sao_Paulo",day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}`:""}</strong></span>
         <span class="chip ${as==="ativo"?"ok":as==="pausado"?"warn":"err"}"><span class="dot" style="background:${autoColor}"></span>${autoLabel}</span>
       </div>
       <div class="conn-row">
