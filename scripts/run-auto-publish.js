@@ -27,9 +27,26 @@
 
 const { runAutoPublish, runGreeting, loadPipelineSettings, cfg } = require("../lib/auto_publish");
 const { computeDispatchTimes, isDispatchTime, nowBRTMinutes, todayBRT, minsToHHMM } = require("../lib/schedule");
-const { getLogsOfDay } = require("../lib/publish_log");
+const { getLogsOfDay, getRecentLogs } = require("../lib/publish_log");
 
 const type = (process.argv[2] || "auto").toLowerCase();
+
+// Houve execução real recente? Evita duplicar quando a rede de segurança
+// (cron 5 min) chega logo depois do job de janela.
+async function hasRecentRun(typeName, minutesBack = 8) {
+  try {
+    const logs = await getRecentLogs(8);
+    const cutoff = Date.now() - minutesBack * 60000;
+    return logs.some(
+      (l) =>
+        l.type === typeName &&
+        ["sent", "dry_run", "no_offers"].includes(l.status) &&
+        new Date(l.created_at).getTime() > cutoff
+    );
+  } catch {
+    return false;
+  }
+}
 
 // Quantas ofertas já foram publicadas hoje (para respeitar a meta diária).
 async function sentTodayCount() {
@@ -50,8 +67,14 @@ async function runAuto() {
   const now = nowBRTMinutes();
 
   // Saudações têm prioridade nos minutos exatos (08:00 e 23:00).
-  if (now === 8 * 60) return await runGreeting(8);
-  if (now === 23 * 60) return await runGreeting(23);
+  if (now === 8 * 60) {
+    if (await hasRecentRun("greeting", 12)) return { action: "greeting_already_sent" };
+    return await runGreeting(8);
+  }
+  if (now === 23 * 60) {
+    if (await hasRecentRun("greeting", 12)) return { action: "greeting_already_sent" };
+    return await runGreeting(23);
+  }
 
   if (!enabled) {
     console.log("auto: automação desligada no painel.");
@@ -62,6 +85,12 @@ async function runAuto() {
   if (!isDispatchTime(dispatch, now)) {
     console.log(`auto: ${minsToHHMM(now)} BRT fora do agendamento (próximo às ${minsToHHMM(dispatch.times.find((t) => t > now) || dispatch.times[0] || 0)}).`);
     return { action: "idle" };
+  }
+
+  // Rede de segurança: se o job de janela já fez o disparo deste minuto, não duplica.
+  if (await hasRecentRun("products", 6)) {
+    console.log("auto: disparo deste minuto já registrado (job de janela).");
+    return { action: "already_sent" };
   }
 
   // Se o modo for meta diária, respeita o limite de ofertas no dia.

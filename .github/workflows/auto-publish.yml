@@ -1,10 +1,21 @@
 # ============================================================
 # Publicação automática diária — RODA NO GITHUB ACTIONS.
 #
-# POR QUE: o plano Free (Hobby) da Vercel limita função serverless
-# a 10s e cron a 1x/dia. O pipeline de auto-publish estoura os dois.
-# Por isso ele roda aqui, no runner do GitHub (grátis, sem limite
-# de duração). O endpoint /api/auto-publish da Vercel NÃO é usado.
+# POR QUE JANELAS: o cron do GitHub ("schedule") atrasa/descarta
+# eventos sob fila — na prática não dispara a cada 5 min. Para
+# disparos espaçados precisos, cada JOB DE JANELA fica de pé por
+# até 6h e executa cada horário na hora certa (scripts/run-window.js),
+# sem depender do cron. O repo é PÚBLICO (minutos de Actions
+# ilimitados).
+#
+# Estrutura do dia (Brasília, 3 janelas de ~6h):
+#   06:00-12:00 | 12:00-18:00 | 18:00-24:00
+# Cada janela:
+#   - 08:00 → bom dia | 23:00 → boa noite
+#   - horários de ofertas espaçadas → 1 oferta por disparo
+# Um cron a cada 5 min roda scripts/run-auto-publish.js auto como
+# REDE DE SEGURANÇA (com trava anti-duplicado: não reenvia o que a
+# janela já enviou).
 #
 # CONFIG (1x, manual):
 # No GitHub: Settings > Secrets and variables > Actions, crie os
@@ -13,47 +24,79 @@
 #   SHOPEE_APP_ID, SHOPEE_APP_SECRET, GEMINI_API_KEY,
 #   EVOLUTION_API_URL, EVOLUTION_INSTANCE_NAME, EVOLUTION_INSTANCE_TOKEN,
 #   GROUP_WHATSAPP_ID, SITE_URL
-#
-# HORÁRIOS: o cron roda A CADA 5 MINUTOS e o script "auto" decide
-# sozinho se este minuto é um horário de disparo, com base nas
-# configurações salvas no painel (tabela settings):
-#   - 08:00 BRT → bom dia
-#   - 23:00 BRT → boa noite
-#   - horários de ofertas espaçadas → 1 oferta por disparo
-#     (intervalo fixo OU meta diária, configurável no painel)
 # ============================================================
 
 name: auto-publish
 
 on:
   schedule:
-    - cron: "*/5 * * * *"
+    - cron: "0 9 * * *"    # 06:00 BRT — abre janela manhã
+    - cron: "0 15 * * *"   # 12:00 BRT — abre janela tarde
+    - cron: "0 21 * * *"   # 18:00 BRT — abre janela noite
+    - cron: "*/5 * * * *"  # rede de segurança
   workflow_dispatch: {}
 
+env:
+  SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+  SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+  SHOPEE_APP_ID: ${{ secrets.SHOPEE_APP_ID }}
+  SHOPEE_APP_SECRET: ${{ secrets.SHOPEE_APP_SECRET }}
+  GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+  EVOLUTION_API_URL: ${{ secrets.EVOLUTION_API_URL }}
+  EVOLUTION_INSTANCE_NAME: ${{ secrets.EVOLUTION_INSTANCE_NAME }}
+  EVOLUTION_INSTANCE_TOKEN: ${{ secrets.EVOLUTION_INSTANCE_TOKEN }}
+  GROUP_WHATSAPP_ID: ${{ secrets.GROUP_WHATSAPP_ID }}
+  SITE_URL: ${{ secrets.SITE_URL }}
+
 jobs:
-  publish:
+  window-morning:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 360
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
-
       - run: npm ci
+      - name: Janela manhã (06:00-12:00 BRT)
+        run: node scripts/run-window.js 06:00 12:00
 
-      - name: Rodar auto (decide o que fazer neste minuto)
-        env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-          SHOPEE_APP_ID: ${{ secrets.SHOPEE_APP_ID }}
-          SHOPEE_APP_SECRET: ${{ secrets.SHOPEE_APP_SECRET }}
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          EVOLUTION_API_URL: ${{ secrets.EVOLUTION_API_URL }}
-          EVOLUTION_INSTANCE_NAME: ${{ secrets.EVOLUTION_INSTANCE_NAME }}
-          EVOLUTION_INSTANCE_TOKEN: ${{ secrets.EVOLUTION_INSTANCE_TOKEN }}
-          GROUP_WHATSAPP_ID: ${{ secrets.GROUP_WHATSAPP_ID }}
-          SITE_URL: ${{ secrets.SITE_URL }}
+  window-afternoon:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Janela tarde (12:00-18:00 BRT)
+        run: node scripts/run-window.js 12:00 18:00
+
+  window-night:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Janela noite (18:00-24:00 BRT)
+        run: node scripts/run-window.js 18:00 24:00
+
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Rede de segurança (cron 5min)
         run: node scripts/run-auto-publish.js auto
