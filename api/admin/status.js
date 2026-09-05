@@ -12,6 +12,7 @@ const STATUS_LABEL = {
   dry_run: "Teste",
   error: "Falhou",
   skipped: "Pulado",
+  in_progress: "Executando",
 };
 
 const GREETING_SLOTS = [

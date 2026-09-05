@@ -34,7 +34,7 @@ async function hasRecentRun(type, minutesBack = 8) {
     return logs.some(
       (l) =>
         l.type === type &&
-        ["sent", "dry_run", "no_offers"].includes(l.status) &&
+        ["sent", "dry_run", "no_offers", "in_progress"].includes(l.status) &&
         new Date(l.created_at).getTime() > cutoff
     );
   } catch {
