@@ -206,10 +206,18 @@ module.exports = async function handler(req, res) {
       planInfo = plan
         ? {
             count: plan.length,
-            items: plan.slice(0, 90).map((o) => ({
-              name: String(o.productName || o.title || "Achadinho").slice(0, 80),
-              price: Number(o.priceMin ?? o.priceMax ?? 0),
-            })),
+            items: plan.slice(0, 90).map((o, i) => {
+              const atMin = dispatch.times[i] ?? -1;
+              return {
+                name: String(o.productName || o.title || "Achadinho").slice(0, 90),
+                price: Number(o.priceMin ?? o.priceMax ?? 0),
+                discount: Number(o.priceDiscountRate ?? 0),
+                image: o.imageUrl || "",
+                at: atMin >= 0 ? minsToHHMM(atMin) : "",
+                atMin,
+                past: atMin >= 0 && atMin * 60 <= secondsNow,
+              };
+            }),
           }
         : { count: null, items: [] };
     } catch {

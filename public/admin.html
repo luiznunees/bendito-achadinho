@@ -424,12 +424,22 @@
   .cd-sub strong { color: var(--ink-secondary); font-weight: 700; text-transform: none; letter-spacing: 0; }
 
   /* Plano do dia */
-  .plan-box { margin-top: 14px; border-top: 1px solid rgba(255,255,255,.06); padding-top: 12px; text-align: left; }
-  .plan-head { font-size: 12px; font-weight: 700; color: var(--accent); margin-bottom: 8px; }
-  .plan-items { list-style: none; margin: 0; padding: 0; max-height: 260px; overflow: auto; display: flex; flex-direction: column; gap: 6px; }
-  .plan-items li { display: flex; justify-content: space-between; gap: 10px; font-size: 12px; color: var(--ink-secondary); }
-  .plan-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .plan-price { color: var(--ink); font-weight: 600; flex-shrink: 0; }
+  .plan-card { margin-top: 10px; max-height: 480px; overflow: auto; }
+  .plan-head { font-size: 13px; font-weight: 700; color: var(--accent); margin-bottom: 4px; }
+  .plan-sub { font-size: 12px; color: var(--muted); margin-bottom: 10px; }
+  .plan-items { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+  .plan-row { display: flex; gap: 10px; align-items: center; padding: 8px 10px; border-radius: 10px; background: var(--bg); }
+  .plan-row.next { outline: 1px solid var(--accent); }
+  .plan-row.done { opacity: .45; }
+  .plan-thumb { width: 46px; height: 46px; border-radius: 8px; object-fit: cover; flex-shrink: 0; background: #222; }
+  .plan-thumb-empty { display: flex; align-items: center; justify-content: center; font-size: 20px; background: var(--bg); }
+  .plan-mid { min-width: 0; }
+  .plan-name { font-size: 12.5px; color: var(--ink-secondary); line-height: 1.35; }
+  .plan-badge { display: inline-block; font-size: 9.5px; font-weight: 800; letter-spacing: .4px; text-transform: uppercase; color: #fff; background: var(--accent); border-radius: 5px; padding: 1px 6px; margin-right: 6px; vertical-align: middle; }
+  .plan-meta { display: flex; align-items: center; gap: 8px; margin-top: 3px; font-size: 11.5px; }
+  .plan-when { color: var(--accent); font-weight: 600; }
+  .plan-price { color: var(--ink); font-weight: 700; }
+  .plan-off { color: var(--success); }
 
   /* ========== Lista de execuções ========== */
   .run-item {
@@ -676,10 +686,12 @@
             <div class="cd-time" id="cd-time">--:--:--</div>
             <div class="cd-sub" id="cd-sub">—</div>
           </div>
-          <div class="plan-box" id="plan-box" style="display:none">
-            <div class="plan-head" id="plan-head"></div>
-            <ul class="plan-items" id="plan-items"></ul>
-          </div>
+        </div>
+
+        <div class="card plan-card" id="plan-box" style="display:none">
+          <div class="plan-head" id="plan-head"></div>
+          <div class="plan-sub" id="plan-sub"></div>
+          <ul class="plan-items" id="plan-items"></ul>
         </div>
 
         <div class="card">
@@ -1108,13 +1120,32 @@
       ? `${nr.emoji} <strong>${nr.label}</strong> de amanhã às <strong>${nr.at}</strong> (BRT)`
       : `${nr.emoji} <strong>${nr.label}</strong> às <strong>${nr.at}</strong> (BRT)`;
 
-    // Plano do dia (ofertas já selecionadas para hoje)
+    // Plano do dia (produtos que serão disparados hoje)
     const pb = document.getElementById("plan-box");
     if (s.plan && s.plan.count != null) {
-      document.getElementById("plan-head").textContent = `Plano do dia · ${s.plan.count} ofertas selecionadas`;
-      document.getElementById("plan-items").innerHTML = s.plan.items.length
-        ? s.plan.items.map((it) => `<li><span class="plan-name">${escapeHtml(it.name)}</span><span class="plan-price">${formatBRL(it.price)}</span></li>`).join("")
-        : `<li style="opacity:.6">Nenhum produto no plano ainda.</li>`;
+      document.getElementById("plan-head").textContent = `Plano do dia · ${s.plan.count} ofertas`;
+      const items = s.plan.items || [];
+      const nextIdx = items.findIndex((it) => it.atMin >= 0 && !it.past);
+      const next = nextIdx >= 0 ? items[nextIdx] : null;
+      document.getElementById("plan-sub").textContent = next
+        ? `Próximo às ${next.at} — ${escapeHtml(next.name)}`
+        : items.length
+          ? "Plano concluído para hoje."
+          : "Ainda não há produtos no plano.";
+      document.getElementById("plan-items").innerHTML = items.length
+        ? items.map((it, i) => {
+            const isNext = i === nextIdx && it.at && !it.past;
+            const done = it.past ? " done" : "";
+            const thumb = it.image
+              ? `<img class="plan-thumb" src="${escapeHtml(it.image)}" alt="" loading="lazy" />`
+              : `<span class="plan-thumb plan-thumb-empty">🛍️</span>`;
+            return `<li class="plan-row${isNext ? " next" : ""}${done}">
+                ${thumb}
+                <div class="plan-mid"><div class="plan-name">${isNext ? "<span class='plan-badge'>próximo</span> " : ""}${escapeHtml(it.name)}</div>
+                <div class="plan-meta">${it.at ? `<span class="plan-when">⏰ ${it.at}</span>` : ""}<span class="plan-price">${formatBRL(it.price)}</span>${it.discount ? `<span class="plan-off">-${it.discount}%</span>` : ""}</div></div>
+              </li>`;
+          }).join("")
+        : `<li style="opacity:.6;padding:10px 0">Nenhum produto no plano ainda.</li>`;
       pb.style.display = "block";
     } else {
       pb.style.display = "none";
