@@ -2,6 +2,7 @@ const { requireAdminAuth } = require("../../lib/adminAuth");
 const { getAllProducts } = require("../../lib/db");
 const { getAllSettings } = require("../../lib/settings");
 const { getLogsOfDay, getRecentLogs } = require("../../lib/publish_log");
+const { getDayPlan } = require("../../lib/plan");
 const { computeDispatchTimes, minsToHHMM } = require("../../lib/schedule");
 
 // Estados exibidos no dashboard para cada status registrado no log.
@@ -198,6 +199,23 @@ module.exports = async function handler(req, res) {
     const bomDia = allSlots.find((s) => s.type === "greeting" && s.hour === 8);
     const boaNoite = allSlots.find((s) => s.type === "greeting" && s.hour === 23);
 
+    // ---- Plano do dia (ofertas já selecionadas para hoje) ----
+    let planInfo = { count: null, items: [] };
+    try {
+      const plan = await getDayPlan(todayBR);
+      planInfo = plan
+        ? {
+            count: plan.length,
+            items: plan.slice(0, 90).map((o) => ({
+              name: String(o.productName || o.title || "Achadinho").slice(0, 80),
+              price: Number(o.priceMin ?? o.priceMax ?? 0),
+            })),
+          }
+        : { count: null, items: [] };
+    } catch {
+      planInfo = { count: null, items: [] };
+    }
+
     res.status(200).json({
       now: now.toISOString(),
       timezone: "America/Sao_Paulo",
@@ -222,6 +240,7 @@ module.exports = async function handler(req, res) {
         boaNoite: { at: "23:00", status: boaNoite.status, statusLabel: boaNoite.statusLabel, sent: boaNoite.status === "sent" },
       },
       todayStats: { ...dayStats, target: dailyTarget },
+      plan: planInfo,
       slotsToday: { scheduled: allSlots.filter((s) => s.status === "scheduled").length, done: allSlots.filter((s) => s.status !== "scheduled" && s.status !== "unregistered").length },
       recentLogs: recentLogs.map((l) => ({
         id: l.id,

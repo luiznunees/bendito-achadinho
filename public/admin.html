@@ -423,6 +423,14 @@
   .cd-sub { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
   .cd-sub strong { color: var(--ink-secondary); font-weight: 700; text-transform: none; letter-spacing: 0; }
 
+  /* Plano do dia */
+  .plan-box { margin-top: 14px; border-top: 1px solid rgba(255,255,255,.06); padding-top: 12px; text-align: left; }
+  .plan-head { font-size: 12px; font-weight: 700; color: var(--accent); margin-bottom: 8px; }
+  .plan-items { list-style: none; margin: 0; padding: 0; max-height: 260px; overflow: auto; display: flex; flex-direction: column; gap: 6px; }
+  .plan-items li { display: flex; justify-content: space-between; gap: 10px; font-size: 12px; color: var(--ink-secondary); }
+  .plan-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .plan-price { color: var(--ink); font-weight: 600; flex-shrink: 0; }
+
   /* ========== Lista de execuções ========== */
   .run-item {
     display: flex;
@@ -667,6 +675,10 @@
           <div class="cd-wrap">
             <div class="cd-time" id="cd-time">--:--:--</div>
             <div class="cd-sub" id="cd-sub">—</div>
+          </div>
+          <div class="plan-box" id="plan-box" style="display:none">
+            <div class="plan-head" id="plan-head"></div>
+            <ul class="plan-items" id="plan-items"></ul>
           </div>
         </div>
 
@@ -1095,6 +1107,18 @@
     document.getElementById("cd-sub").innerHTML = nr.tomorrow
       ? `${nr.emoji} <strong>${nr.label}</strong> de amanhã às <strong>${nr.at}</strong> (BRT)`
       : `${nr.emoji} <strong>${nr.label}</strong> às <strong>${nr.at}</strong> (BRT)`;
+
+    // Plano do dia (ofertas já selecionadas para hoje)
+    const pb = document.getElementById("plan-box");
+    if (s.plan && s.plan.count != null) {
+      document.getElementById("plan-head").textContent = `Plano do dia · ${s.plan.count} ofertas selecionadas`;
+      document.getElementById("plan-items").innerHTML = s.plan.items.length
+        ? s.plan.items.map((it) => `<li><span class="plan-name">${escapeHtml(it.name)}</span><span class="plan-price">${formatBRL(it.price)}</span></li>`).join("")
+        : `<li style="opacity:.6">Nenhum produto no plano ainda.</li>`;
+      pb.style.display = "block";
+    } else {
+      pb.style.display = "none";
+    }
 
     // Conexões
     const evoColor = evoOk ? "var(--success)" : "var(--error)";

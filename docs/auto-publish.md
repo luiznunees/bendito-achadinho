@@ -73,6 +73,22 @@ Depois, a oferta do disparo é **sorteada dentro do top-N** (`pickCandidate`, pa
 - Faixa de preço ideal de 20–120 no `priceScore` (zum < 8 e genérico caro cadêm); doc de ICP: `docs/icp-bendito.md`.
 - Uma oferta **não é reenviada** dentro de `AUTOPUBLISH_NO_REPEAT_DAYS` (padrão **3**) — checado pelo `itemId` da Shopee nos logs de envios (`getSentShopeeItemIds`). `0` desliga o filtro.
 - Se forem pedidas várias ofertas na mesma execução (teste/manual, `maxOffers>1`), usa a ordem por ranking.
+
+## Plano do dia (seleção única pela manhã)
+
+No **primeiro disparo de cada dia**, o sistema seleciona **todas as ofertas do dia** de uma vez
+(`auto_publish_plan`) e cada disparo espaçado envia a oferta da sua posição na ordem
+(ranqueada). Isso tira o sorteio/disparo por disparo: a escala do dia fica **fixa e
+previsível** desde o começo, sem re-buscar a Shopee a cada 15 min.
+
+- Tamanho do plano = nº de disparos do dia (`computeDispatchTimes`), até 90 por segurança.
+- O plano respeita os **mesmos filtros** do pipeline (nicho, preço, desconto, sem repetir
+  enviados dos últimos `AUTOPUBLISH_NO_REPEAT_DAYS`).
+- Slot sem oferta no plano (plano esgotou) → registra `no_offers` e segue — **não** reforça
+  com item fora do plano. Se a tabela falhar, cai para a seleção normal por ranking
+  (fail-open).
+- O painel mostra o **plano do dia** (nº de ofertas e a lista) no card "Próximo disparo".
+- Migração necessária: `scripts/schema-plan.sql`.
 - O dry-run (`AUTOPUBLISH_DRY_RUN=true`) mostra a nota e a oferta sorteada.
 
 ## Variáveis de ambiente — GitHub Actions (1x manual)
