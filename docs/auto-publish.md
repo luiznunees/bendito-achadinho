@@ -43,14 +43,17 @@ O **agendamento roda no GitHub Actions**, não na Vercel, por dois limites do pl
 1. **Cron da Vercel**: no plano Free só dispara **1x/dia**.
 2. **Duração da função**: função serverless na Free morre aos **10s** — o pipeline (busca ~30 keywords + Gemini ~25s + envio) estoura.
 
-O workflow em `.github/workflows/auto-publish.yml` roda um cron **a cada 5 minutos** chamando `scripts/run-auto-publish.js auto`. O script "auto" decide o que fazer neste minuto com base nas configurações do painel (tabela `settings`, que também alimenta o dashboard):
+O cron do GitHub (evento `schedule`) **descarta/atrasa disparos sob fila** — na prática não respeita "a cada 5 min". Por isso o workflow usa **jobs de janela**: cada job fica de pé por até 6h (`scripts/run-window.js`) e executa cada horário espaçado **na hora certa**, sem depender do cron:
 
-- `08:00` BRT → saudação bom dia
-- `23:00` BRT → saudação boa noite
-- algum horário de disparo espaçado → publica 1 oferta
-- qualquer outro minuto → não faz nada (retorno rápido)
+```
+06:00–12:00 BRT (job manhã)  → run-window.js 06:00 12:00
+12:00–18:00 BRT (job tarde)  → run-window.js 12:00 18:00
+18:00–24:00 BRT (job noite)  → run-window.js 18:00 24:00
+```
 
-Como o cron roda a cada 5 min, horários configuráveis como "a cada 1 hora", "a cada 37 min" etc. funcionam sem depender de cron exato — o script compara o minuto atual (BRT) com a grade calculada por `lib/schedule.js`.
+Dentro da janela o script relê a config do painel a cada 30s (mudança vale no próximo minuto), dispara **1 oferta** por horário espaçado e as saudações fixas de 08h/23h. Um **cron a cada 5 min** roda `scripts/run-auto-publish.js auto` como **rede de segurança** com trava anti-duplicado (não reenvia o que a janela já enviou).
+
+> ⚠️ O repositório precisa ser **PÚBLICO** (o GitHub dá minutos de Actions ilimitados para repos públicos; repós privados têm só 2000 min/mês, incompatível com jobs de 18h/dia).
 
 ## Variáveis de ambiente — GitHub Actions (1x manual)
 
