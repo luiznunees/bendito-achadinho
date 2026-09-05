@@ -12,7 +12,7 @@ const CONFIG = {
     headline: "Entre no nosso grupo de ofertas!",
     description: "Promoções exclusivas todos os dias",
     buttonLabel: "Clique aqui e participe",
-    url: "https://chat.whatsapp.com/SEU_LINK_AQUI",
+    url: "https://chat.whatsapp.com/E2uNQMl9kztGdOs0TzX2eS",
   },
 
   // Redes sociais (deixe url: "" para ocultar o ícone)
