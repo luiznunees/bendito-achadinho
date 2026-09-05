@@ -1050,9 +1050,8 @@
     document.getElementById("header-clock").textContent = `${p.h}:${p.min} BRT`;
     const cd = document.getElementById("cd-time");
     if (cd && lastStatus && lastStatus.nextRun && cd.dataset.live==="1") {
-      let sec = (lastStatus._cdBase || 0) + Math.floor((Date.now() - lastStatus._cdT) / 1000);
-      const total = lastStatus.nextRun.countdownSeconds;
-      if (sec > total) sec = total;
+      let sec = (lastStatus._cdBase || 0) - Math.floor((Date.now() - lastStatus._cdT) / 1000);
+      if (sec < 0) sec = 0;
       cd.textContent = hhmmss(sec);
     }
   }
@@ -1427,7 +1426,7 @@
   document.getElementById("logout-btn").addEventListener("click", ()=>{ localStorage.removeItem("adminAuth"); authHeader=""; showLogin(""); });
 
   // Auto-refresh do status a cada 60s
-  setInterval(()=>{ if(currentView==="status") loadStatus(); }, 60000);
+  setInterval(()=>{ if(currentView==="status") loadStatus(); }, 15000);
 
   startStatusTick();
   if(authHeader){ api("/api/admin/products").then(()=>showApp()).catch(()=>showLogin("")); }
