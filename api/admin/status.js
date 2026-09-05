@@ -129,10 +129,10 @@ module.exports = async function handler(req, res) {
       else if (atSeconds <= secondsNow) status = "unregistered";
       else status = "scheduled";
 
-      return {
-        at: minsToHHMM(minutes),
+return {
+        at: minsToHHMM(hour * 60 + minutes),
         hour,
-        minute: minutes,
+        minute,
         type,
         label,
         emoji,
