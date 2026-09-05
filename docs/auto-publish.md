@@ -71,6 +71,7 @@ Depois, a oferta do disparo é **sorteada dentro do top-N** (`pickCandidate`, pa
 
 - Pesos padrão (alinhados ao ICP em `docs/icp-bendito.md`): 0.30 / 0.25 / 0.15 / 0.05 / 0.25 (`AUTOPUBLISH_RANK_W_NICHE/_SALES/_DISCOUNT/_COMMISSION/_PRICE`) — preço e nicho pesam mais que desconto/comissão.
 - Faixa de preço ideal de 20–120 no `priceScore` (zum < 8 e genérico caro cadêm); doc de ICP: `docs/icp-bendito.md`.
+- Uma oferta **não é reenviada** dentro de `AUTOPUBLISH_NO_REPEAT_DAYS` (padrão **3**) — checado pelo `itemId` da Shopee nos logs de envios (`getSentShopeeItemIds`). `0` desliga o filtro.
 - Se forem pedidas várias ofertas na mesma execução (teste/manual, `maxOffers>1`), usa a ordem por ranking.
 - O dry-run (`AUTOPUBLISH_DRY_RUN=true`) mostra a nota e a oferta sorteada.
 

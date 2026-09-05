@@ -826,6 +826,7 @@
             <div><label class="field-label" for="cfg-min-price">Preço mínimo (R$)</label><input type="number" id="cfg-min-price" min="0" step="0.5" /></div>
             <div><label class="field-label" for="cfg-max-price">Preço máximo (R$)</label><input type="number" id="cfg-max-price" min="0" step="0.5" /></div>
             <div><label class="field-label" for="cfg-max-offers">Máx. ofertas/execução</label><input type="number" id="cfg-max-offers" min="1" max="20" /></div>
+            <div><label class="field-label" for="cfg-no-repeat-days">Não repetir oferta enviada (dias)</label><input type="number" id="cfg-no-repeat-days" min="0" max="30" /><div style="font-size:12px;color:var(--muted);margin-top:4px">0 = sempre pode repetir</div></div>
           </div>
         </div>
 
@@ -1299,6 +1300,7 @@
       document.getElementById("cfg-min-price").value = c.AUTOPUBLISH_MIN_PRICE || 5;
       document.getElementById("cfg-max-price").value = c.AUTOPUBLISH_MAX_PRICE || 300;
       document.getElementById("cfg-max-offers").value = c.AUTOPUBLISH_MAX_OFFERS || 5;
+      document.getElementById("cfg-no-repeat-days").value = c.AUTOPUBLISH_NO_REPEAT_DAYS || 3;
       document.getElementById("cfg-send-image").checked = c.AUTOPUBLISH_SEND_IMAGE !== "false";
       document.getElementById("cfg-spacing-mode").value = c.AUTOPUBLISH_SPACING_MODE || "interval";
       document.getElementById("cfg-start-time").value = c.AUTOPUBLISH_START_TIME || "08:00";
@@ -1329,6 +1331,7 @@
           AUTOPUBLISH_MIN_PRICE: document.getElementById("cfg-min-price").value,
           AUTOPUBLISH_MAX_PRICE: document.getElementById("cfg-max-price").value,
           AUTOPUBLISH_MAX_OFFERS: document.getElementById("cfg-max-offers").value,
+          AUTOPUBLISH_NO_REPEAT_DAYS: document.getElementById("cfg-no-repeat-days").value,
           AUTOPUBLISH_SEND_IMAGE: document.getElementById("cfg-send-image").checked ? "true" : "false",
           AUTOPUBLISH_SPACING_MODE: document.getElementById("cfg-spacing-mode").value,
           AUTOPUBLISH_START_TIME: document.getElementById("cfg-start-time").value,
