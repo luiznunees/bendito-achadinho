@@ -55,6 +55,21 @@ Dentro da janela o script relê a config do painel a cada 30s (mudança vale no 
 
 > ⚠️ O repositório precisa ser **PÚBLICO** (o GitHub dá minutos de Actions ilimitados para repos públicos; repós privados têm só 2000 min/mês, incompatível com jobs de 18h/dia).
 
+## Seleção da oferta (ranking de qualidade)
+
+Cada disparo espaçado envia **1 oferta**. Para não cair sempre em item barato/zum, a lista completa de candidatas recebe uma **nota ponderada** (`rankOfferScore`) e a de maior nota vai pro grupo:
+
+```
+nota = W_nicho    × força do nicho (termos religiosos no título, 2+ → 1.0)
+      + W_sales   × log10 das vendas (10=0.3, 100=0.7, 1000=1.0)
+      + W_desconto× % desconto (60% → 1.0)
+      + W_comissao× % comissão (15% → 1.0)
+      + W_preco   × faixa de achado (15–150 = 1.0; barato/caro caem)
+```
+
+- Pesos padrão: 0.35 / 0.25 / 0.15 / 0.15 / 0.10 (configurável: `AUTOPUBLISH_RANK_W_NICHE/_SALES/_DISCOUNT/_COMMISSION/_PRICE`).
+- O dry-run (`AUTOPUBLISH_DRY_RUN=true`) mostra a nota de cada candidata.
+
 ## Variáveis de ambiente — GitHub Actions (1x manual)
 
 Em **Settings → Secrets and variables → Actions**, criar as secrets abaixo com os MESMOS valores do `.env.local`:
