@@ -26,7 +26,7 @@ if (!url || !key) {
   process.exit(1);
 }
 
-const xlsxPath = path.resolve(process.argv[2] || "data/planilhas/calendario-7dias-ofertas-catolicas.xlsx");
+const xlsxPath = path.resolve(process.argv[2] || "public/data/planilhas/calendario-7dias-ofertas-catolicas.xlsx");
 
 // Mapa de horário -> categoria canônica (igual à SLOT_CONFIG do painel)
 const SLOT_CATEGORY = {

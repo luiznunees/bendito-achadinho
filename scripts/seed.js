@@ -8,7 +8,7 @@
 // ============================================================
 
 const { createClient } = require("@supabase/supabase-js");
-const PRODUCTS = require("../data/products.js");
+const PRODUCTS = require("../public/data/products.js");
 
 const url = process.env.SUPABASE_URL;
 const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
