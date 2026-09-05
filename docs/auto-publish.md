@@ -55,9 +55,9 @@ Dentro da janela o script relê a config do painel a cada 30s (mudança vale no 
 
 > ⚠️ O repositório precisa ser **PÚBLICO** (o GitHub dá minutos de Actions ilimitados para repos públicos; repós privados têm só 2000 min/mês, incompatível com jobs de 18h/dia).
 
-## Seleção da oferta (ranking de qualidade)
+## Seleção da oferta (ranking + sorteio)
 
-Cada disparo espaçado envia **1 oferta**. Para não cair sempre em item barato/zum, a lista completa de candidatas recebe uma **nota ponderada** (`rankOfferScore`) e a de maior nota vai pro grupo:
+Cada disparo espaçado envia **1 oferta**. Primeiro, a lista completa de candidatas recebe uma **nota ponderada** (`rankOfferScore`):
 
 ```
 nota = W_nicho    × força do nicho (termos religiosos no título, 2+ → 1.0)
@@ -67,8 +67,11 @@ nota = W_nicho    × força do nicho (termos religiosos no título, 2+ → 1.0)
       + W_preco   × faixa de achado (15–150 = 1.0; barato/caro caem)
 ```
 
-- Pesos padrão: 0.35 / 0.25 / 0.15 / 0.15 / 0.10 (configurável: `AUTOPUBLISH_RANK_W_NICHE/_SALES/_DISCOUNT/_COMMISSION/_PRICE`).
-- O dry-run (`AUTOPUBLISH_DRY_RUN=true`) mostra a nota de cada candidata.
+Depois, a oferta do disparo é **sorteada dentro do top-N** (`pickCandidate`, padrão top **10**, configurável `AUTOPUBLISH_RANK_POOL`), ponderada pela nota elevada a 1.5. Assim o grupo **não fica repetido e mistura itens bons, caros e baratos** — os melhores saem com mais frequência, mas qualquer um do top pode aparecer.
+
+- Pesos padrão: 0.35 / 0.25 / 0.15 / 0.15 / 0.10 (`AUTOPUBLISH_RANK_W_NICHE/_SALES/_DISCOUNT/_COMMISSION/_PRICE`).
+- Se forem pedidas várias ofertas na mesma execução (teste/manual, `maxOffers>1`), usa a ordem por ranking.
+- O dry-run (`AUTOPUBLISH_DRY_RUN=true`) mostra a nota e a oferta sorteada.
 
 ## Variáveis de ambiente — GitHub Actions (1x manual)
 
