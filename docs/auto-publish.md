@@ -69,7 +69,8 @@ nota = W_nicho    × força do nicho (termos religiosos no título, 2+ → 1.0)
 
 Depois, a oferta do disparo é **sorteada dentro do top-N** (`pickCandidate`, padrão top **10**, configurável `AUTOPUBLISH_RANK_POOL`), ponderada pela nota elevada a 1.5. Assim o grupo **não fica repetido e mistura itens bons, caros e baratos** — os melhores saem com mais frequência, mas qualquer um do top pode aparecer.
 
-- Pesos padrão: 0.35 / 0.25 / 0.15 / 0.15 / 0.10 (`AUTOPUBLISH_RANK_W_NICHE/_SALES/_DISCOUNT/_COMMISSION/_PRICE`).
+- Pesos padrão (alinhados ao ICP em `docs/icp-bendito.md`): 0.30 / 0.25 / 0.15 / 0.05 / 0.25 (`AUTOPUBLISH_RANK_W_NICHE/_SALES/_DISCOUNT/_COMMISSION/_PRICE`) — preço e nicho pesam mais que desconto/comissão.
+- Faixa de preço ideal de 20–120 no `priceScore` (zum < 8 e genérico caro cadêm); doc de ICP: `docs/icp-bendito.md`.
 - Se forem pedidas várias ofertas na mesma execução (teste/manual, `maxOffers>1`), usa a ordem por ranking.
 - O dry-run (`AUTOPUBLISH_DRY_RUN=true`) mostra a nota e a oferta sorteada.
 
