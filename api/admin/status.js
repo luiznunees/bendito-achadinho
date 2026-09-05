@@ -132,7 +132,7 @@ module.exports = async function handler(req, res) {
 return {
         at: minsToHHMM(hour * 60 + minutes),
         hour,
-        minute,
+        minute: minutes,
         type,
         label,
         emoji,
