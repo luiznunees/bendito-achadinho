@@ -440,6 +440,7 @@
   .plan-when { color: var(--accent); font-weight: 600; }
   .plan-price { color: var(--ink); font-weight: 700; }
   .plan-off { color: var(--success); }
+  .plan-cat { display: inline-block; font-size: 9.5px; font-weight: 700; letter-spacing: .3px; text-transform: uppercase; color: var(--accent); border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent); border-radius: 5px; padding: 1px 5px; margin-left: 6px; vertical-align: middle; }
 
   /* ========== Lista de execuções ========== */
   .run-item {
@@ -1141,7 +1142,7 @@
               : `<span class="plan-thumb plan-thumb-empty">🛍️</span>`;
             return `<li class="plan-row${isNext ? " next" : ""}${done}">
                 ${thumb}
-                <div class="plan-mid"><div class="plan-name">${isNext ? "<span class='plan-badge'>próximo</span> " : ""}${escapeHtml(it.name)}</div>
+                <div class="plan-mid"><div class="plan-name">${isNext ? "<span class='plan-badge'>próximo</span> " : ""}${escapeHtml(it.name)}${it.category ? `<span class="plan-cat">${escapeHtml(it.category)}</span>` : ""}</div>
                 <div class="plan-meta">${it.at ? `<span class="plan-when">⏰ ${it.at}</span>` : ""}<span class="plan-price">${formatBRL(it.price)}</span>${it.discount ? `<span class="plan-off">-${it.discount}%</span>` : ""}</div></div>
               </li>`;
           }).join("")

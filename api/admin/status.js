@@ -213,6 +213,7 @@ return {
                 price: Number(o.priceMin ?? o.priceMax ?? 0),
                 discount: Number(o.priceDiscountRate ?? 0),
                 image: o.imageUrl || "",
+                category: o.category || "",
                 at: atMin >= 0 ? minsToHHMM(atMin) : "",
                 atMin,
                 past: atMin >= 0 && atMin * 60 <= secondsNow,
