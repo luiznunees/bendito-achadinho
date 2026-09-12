@@ -7,7 +7,6 @@
     "seed": "node scripts/seed.js"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.112.3",
-    "sharp": "^0.35.4"
+    "@supabase/supabase-js": "^2.112.3"
   }
 }
