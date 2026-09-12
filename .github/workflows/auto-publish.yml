@@ -17,6 +17,10 @@
 # REDE DE SEGURANÇA (com trava anti-duplicado: não reenvia o que a
 # janela já enviou).
 #
+# Cada job tem um `if: github.event.schedule == '...'` — sem isso, o
+# GitHub roda os 4 jobs em TODO gatilho (inclusive nos ticks de 5 em
+# 5 min), empilhando janelas de 6h duplicadas o dia inteiro.
+#
 # CONFIG (1x, manual):
 # No GitHub: Settings > Secrets and variables > Actions, crie os
 # secrets abaixo com os MESMOS valores do seu .env.local:
@@ -50,6 +54,7 @@ env:
 
 jobs:
   window-morning:
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 9 * * *'
     runs-on: ubuntu-latest
     timeout-minutes: 360
     steps:
@@ -63,6 +68,7 @@ jobs:
         run: node scripts/run-window.js 06:00 12:00
 
   window-afternoon:
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 15 * * *'
     runs-on: ubuntu-latest
     timeout-minutes: 360
     steps:
@@ -76,6 +82,7 @@ jobs:
         run: node scripts/run-window.js 12:00 18:00
 
   window-night:
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 21 * * *'
     runs-on: ubuntu-latest
     timeout-minutes: 360
     steps:
@@ -89,6 +96,7 @@ jobs:
         run: node scripts/run-window.js 18:00 24:00
 
   backup:
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '*/5 * * * *'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
