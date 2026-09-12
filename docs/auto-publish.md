@@ -6,7 +6,7 @@ Os horários são **espaçados e configuráveis no painel** (aba Config → "Hor
 
 | Configuração | Como funciona |
 |--------------|---------------|
-| 🍃 Modo "A cada X minutos" | Dispara **1 oferta** a cada `AUTOPUBLISH_INTERVAL_MINUTES`, entre `AUTOPUBLISH_START_TIME` e `AUTOPUBLISH_END_TIME`. Ex.: a cada 15 min das 08:00 às 11:00 → 13 ofertas/dia. |
+| 🍃 Modo "A cada X minutos" | Dispara **1 oferta** a cada intervalo **aleatório** entre `AUTOPUBLISH_INTERVAL_MIN_MINUTES` e `AUTOPUBLISH_INTERVAL_MAX_MINUTES` (padrão 3-15min), entre `AUTOPUBLISH_START_TIME` e `AUTOPUBLISH_END_TIME`. O sorteio é fixo durante o dia inteiro (muda de um dia pro outro). |
 | 🎯 Modo "Meta de N produtos/dia" | Você define `AUTOPUBLISH_DAILY_TARGET` (ex.: 20) e o sistema **calcula o intervalo** que distribui essa quantidade dentro da janela (arredondado para múltiplo de 5 min). |
 | ☀️ 08:00 (fixo) | Saudação "Bom dia" (imagem + texto) |
 | 🌙 23:00 (fixo) | Saudação "Boa noite" (imagem + texto) |

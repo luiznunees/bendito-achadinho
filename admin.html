@@ -854,9 +854,17 @@
           </div>
 
           <div id="cfg-interval-options">
-            <label class="field-label" for="cfg-interval">A cada quantos minutos?</label>
-            <input type="number" id="cfg-interval" min="5" max="240" />
-            <div style="font-size:12px;color:var(--muted);margin-top:6px">Ex.: a cada 15 min das 08:00 às 23:00 = 61 disparos (61 ofertas por dia).</div>
+            <div class="row">
+              <div>
+                <label class="field-label" for="cfg-interval-min">Mínimo (min)</label>
+                <input type="number" id="cfg-interval-min" min="1" max="240" />
+              </div>
+              <div>
+                <label class="field-label" for="cfg-interval-max">Máximo (min)</label>
+                <input type="number" id="cfg-interval-max" min="1" max="240" />
+              </div>
+            </div>
+            <div style="font-size:12px;color:var(--muted);margin-top:6px">Cada disparo espera um tempo aleatório entre o mínimo e o máximo (fica com cara mais natural, menos robótico). O sorteio é fixo durante o dia inteiro.</div>
           </div>
 
           <div id="cfg-target-options" style="display:none">
@@ -1262,12 +1270,14 @@
     document.getElementById("cfg-interval-options").style.display = mode === "interval" ? "block" : "none";
     document.getElementById("cfg-target-options").style.display = mode === "daily_target" ? "block" : "none";
     if (mode === "interval") {
-      const iv = Math.max(5, Number(document.getElementById("cfg-interval").value) || 15);
+      const min = Math.max(1, Number(document.getElementById("cfg-interval-min").value) || 3);
+      const max = Math.max(min, Number(document.getElementById("cfg-interval-max").value) || 15);
+      const avg = (min + max) / 2;
       const [h0, m0] = (document.getElementById("cfg-start-time").value || "08:00").split(":").map(Number);
       const [h1, m1] = (document.getElementById("cfg-end-time").value || "23:00").split(":").map(Number);
       const span = (h1 * 60 + m1) - (h0 * 60 + m0);
-      const count = span > 0 ? Math.floor(span / iv) + 1 : 1;
-      document.getElementById("cfg-target-preview").textContent = `${count} disparos (1 oferta cada) por dia.`;
+      const count = span > 0 ? Math.floor(span / avg) + 1 : 1;
+      document.getElementById("cfg-target-preview").textContent = `~${count} disparos por dia (gap aleatório de ${min}-${max} min).`;
     } else {
       const target = Math.max(1, Number(document.getElementById("cfg-daily-target").value) || 15);
       const [h0, m0] = (document.getElementById("cfg-start-time").value || "08:00").split(":").map(Number);
@@ -1304,7 +1314,8 @@
       document.getElementById("cfg-spacing-mode").value = c.AUTOPUBLISH_SPACING_MODE || "interval";
       document.getElementById("cfg-start-time").value = c.AUTOPUBLISH_START_TIME || "08:00";
       document.getElementById("cfg-end-time").value = c.AUTOPUBLISH_END_TIME || "23:00";
-      document.getElementById("cfg-interval").value = c.AUTOPUBLISH_INTERVAL_MINUTES || 15;
+      document.getElementById("cfg-interval-min").value = c.AUTOPUBLISH_INTERVAL_MIN_MINUTES || 3;
+      document.getElementById("cfg-interval-max").value = c.AUTOPUBLISH_INTERVAL_MAX_MINUTES || 15;
       document.getElementById("cfg-daily-target").value = c.AUTOPUBLISH_DAILY_TARGET || 15;
       updateSpacingPreview();
       document.getElementById("cfg-sort").value = c.AUTOPUBLISH_SORT_TYPE || 5;
@@ -1334,7 +1345,8 @@
           AUTOPUBLISH_SPACING_MODE: document.getElementById("cfg-spacing-mode").value,
           AUTOPUBLISH_START_TIME: document.getElementById("cfg-start-time").value,
           AUTOPUBLISH_END_TIME: document.getElementById("cfg-end-time").value,
-          AUTOPUBLISH_INTERVAL_MINUTES: document.getElementById("cfg-interval").value,
+          AUTOPUBLISH_INTERVAL_MIN_MINUTES: document.getElementById("cfg-interval-min").value,
+          AUTOPUBLISH_INTERVAL_MAX_MINUTES: document.getElementById("cfg-interval-max").value,
           AUTOPUBLISH_DAILY_TARGET: document.getElementById("cfg-daily-target").value,
           AUTOPUBLISH_SORT_TYPE: document.getElementById("cfg-sort").value,
           AUTOPUBLISH_COUPON: document.getElementById("cfg-coupon").value,
@@ -1406,7 +1418,7 @@
   document.getElementById("next-day").addEventListener("click",()=>{ selectedDate.setDate(selectedDate.getDate()+1); loadSchedule(); });
   document.getElementById("tpl-save-btn").addEventListener("click", saveNewTemplate);
   document.getElementById("cfg-spacing-mode").addEventListener("change", updateSpacingPreview);
-  ["cfg-interval", "cfg-daily-target", "cfg-start-time", "cfg-end-time"].forEach(id =>
+  ["cfg-interval-min", "cfg-interval-max", "cfg-daily-target", "cfg-start-time", "cfg-end-time"].forEach(id =>
     document.getElementById(id).addEventListener("input", updateSpacingPreview));
   document.querySelectorAll(".tpl-filter").forEach(b=>b.addEventListener("click",()=>{ tplFilterSlot=b.dataset.tplSlot; document.querySelectorAll(".tpl-filter").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); renderTemplates(); }));
   document.getElementById("curate-btn").addEventListener("click", async ()=>{
